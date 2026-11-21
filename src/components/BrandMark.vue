@@ -1,0 +1,9 @@
+<template>
+  <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+    <rect x="1" y="1" width="46" height="46" rx="14" fill="currentColor" />
+    <path d="M24 9c5 4.5 8.5 8.1 8.5 13.4V37h-17V22.4C15.5 17.1 19 13.5 24 9Z" fill="none" stroke="#a8d6c6" stroke-width="1.6" />
+    <path d="M24 37V24" stroke="#a8d6c6" stroke-width="1.6" stroke-linecap="round" />
+    <path d="M20.5 37v-4.6a3.5 3.5 0 0 1 7 0V37" fill="none" stroke="#a8d6c6" stroke-width="1.6" />
+    <path d="M24 17.5l1.4 2.9 3.1.4-2.3 2.2.6 3.1-2.8-1.5-2.8 1.5.6-3.1-2.3-2.2 3.1-.4Z" fill="#a8d6c6" />
+  </svg>
+</template>

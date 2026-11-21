@@ -1,0 +1,98 @@
+[
+  {
+    "id": "jumat-berkah",
+    "query": "people sharing food community meal",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/jumat-berkah.jpg",
+    "alt": "People gathered outdoors sharing and preparing a traditional meal. Vibrant cultural scene.",
+    "author": "Victor Chijioke",
+    "authorUrl": "https://www.pexels.com/@victor-chijioke-350220031",
+    "sourceUrl": "https://www.pexels.com/photo/people-preparing-food-in-a-village-20054482/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "bakti-sosial",
+    "query": "volunteers packing donation boxes charity",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/bakti-sosial.jpg",
+    "alt": "Volunteers wearing masks sort clothes and essentials into donation boxes, promoting charity and safety.",
+    "author": "Gustavo Fring",
+    "authorUrl": "https://www.pexels.com/@gustavo-fring",
+    "sourceUrl": "https://www.pexels.com/photo/volunteers-packing-up-goods-7156188/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "kajian",
+    "query": "quran study group reading",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/kajian.jpg",
+    "alt": "Group of men reading the Quran inside a mosque in Erzurum, Turkiye, showcasing spiritual devotion and cultural tradition.",
+    "author": "Serhat HAYTAOGLU",
+    "authorUrl": "https://www.pexels.com/@serhat-haytaoglu-579566477",
+    "sourceUrl": "https://www.pexels.com/photo/men-reading-quran-inside-a-mosque-in-erzurum-30268974/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "masjid-hero",
+    "query": "mosque exterior indonesia architecture",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/masjid-hero.jpg",
+    "alt": "Beautiful Islamic mosque with domes and towers in Indonesia, showcasing modern architecture.",
+    "author": "Giga Rizqona",
+    "authorUrl": "https://www.pexels.com/@giga-rizqona-92812675",
+    "sourceUrl": "https://www.pexels.com/photo/the-great-mosque-of-central-java-9164036/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "masjid-galeri-1",
+    "query": "mosque interior prayer hall architecture",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/masjid-galeri-1.jpg",
+    "alt": "Elegant interior of a modern mosque featuring intricate geometric patterns and Islamic architecture.",
+    "author": "Hera Permata S",
+    "authorUrl": "https://www.pexels.com/@hera-permata-s-2157462344",
+    "sourceUrl": "https://www.pexels.com/photo/modern-islamic-mosque-interior-with-geometric-patterns-40410052/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "masjid-galeri-2",
+    "query": "mosque courtyard arches islamic architecture",
+    "status": "ok",
+    "provider": "pixabay",
+    "path": "assets/stock/masjid-galeri-2.jpg",
+    "alt": "istanbul, turkey, mosque courtyard, islamic architecture, ottoman architecture, suleymaniye mosque, sunset, courtyard, arches, people, travel, culture, religion, heritage, nature, historical building, tourism",
+    "author": "fotos1992",
+    "authorUrl": "https://pixabay.com/users/fotos1992-6533637/",
+    "sourceUrl": "https://pixabay.com/photos/istanbul-turkey-mosque-courtyard-9939687/",
+    "license": "Pixabay Content License (https://pixabay.com/service/license-summary/)"
+  },
+  {
+    "id": "masjid-galeri-3",
+    "query": "mosque minaret dome detail islamic architecture",
+    "status": "ok",
+    "provider": "pexels",
+    "path": "assets/stock/masjid-galeri-3.jpg",
+    "alt": "Detailed view of a mosque's minaret and dome under a clear sky, depicting Islamic architecture.",
+    "author": "Yaşar Başkurt",
+    "authorUrl": "https://www.pexels.com/@yasar-baskurt-706180077",
+    "sourceUrl": "https://www.pexels.com/photo/ornate-minaret-and-dome-against-clear-sky-31206259/",
+    "license": "Pexels License (https://www.pexels.com/license/)"
+  },
+  {
+    "id": "masjid-galeri-4",
+    "query": "muslim prayer congregation mosque interior",
+    "status": "ok",
+    "provider": "pixabay",
+    "path": "assets/stock/masjid-galeri-4.jpg",
+    "alt": "islam, mosque, pray, prayer, moslem, religion, muslim, arch, masjid, structure, faith, islamic, building, moslem, moslem, moslem, moslem, moslem",
+    "author": "Fuzz",
+    "authorUrl": "https://pixabay.com/users/Fuzz-97706/",
+    "sourceUrl": "https://pixabay.com/photos/islam-mosque-pray-prayer-moslem-236872/",
+    "license": "Pixabay Content License (https://pixabay.com/service/license-summary/)"
+  }
+]
