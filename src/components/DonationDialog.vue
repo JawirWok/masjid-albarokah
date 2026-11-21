@@ -33,7 +33,8 @@ function toPayment() {
   errors.name = form.name.trim().length < 3 ? 'Isi nama minimal 3 karakter.' : ''
   const amount = Number(form.amount)
   errors.amount = !(amount >= 10000 && amount <= 100000000) ? 'Nominal antara Rp10.000 dan Rp100.000.000.' : ''
-  if (errors.name || errors.amount) return
+  if (errors.name) return document.getElementById('donorName')?.focus()
+  if (errors.amount) return document.getElementById('donorAmount')?.focus()
   draft.value = {
     id: `donasi-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     name: form.name.trim(), program: form.program, amount, method: form.method, anon: form.anon,
@@ -54,19 +55,27 @@ async function paid() {
   }
 }
 
+const stepIdx = computed(() => ({ form: 0, pay: 1, sending: 1, done: 2 }[step.value]))
 const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', sending: 'Mencatat donasi…', done: 'Donasi Anda tercatat' }[step.value]))
 </script>
 
 <template>
   <BaseDialog :open="open" :title="title" eyebrow="Donasi" @close="store.donationProgram = null">
+    <ol class="flex items-center gap-2 text-xs mb-5" aria-label="Langkah donasi">
+      <li v-for="(l, i) in ['Data', 'Pembayaran', 'Selesai']" :key="l" class="flex items-center gap-2" :class="i <= stepIdx ? 'text-brand-700 font-semibold' : 'text-[#7f918b]'" :aria-current="i === stepIdx ? 'step' : undefined">
+        <span class="grid size-6 place-items-center rounded-full text-[11px]" :class="i <= stepIdx ? 'bg-brand-700 text-white' : 'bg-brand-50'">{{ i + 1 }}</span>{{ l }}
+        <span v-if="i < 2" class="mx-1 h-px w-6 bg-[#c9d9d1]" aria-hidden="true"></span>
+      </li>
+    </ol>
+
     <!-- 1. Isi data -->
     <form v-if="step === 'form'" novalidate @submit.prevent="toPayment">
-      <div class="field">
+      <div class="field" :class="{ 'has-error': errors.name }">
         <label for="donorName">Nama</label>
-        <input id="donorName" v-model="form.name" type="text" autocomplete="name" maxlength="80" placeholder="Nama lengkap">
+        <input id="donorName" v-model="form.name" type="text" autocomplete="name" maxlength="80" placeholder="Nama lengkap" @input="errors.name = ''">
         <p class="err" role="alert">{{ errors.name }}</p>
       </div>
-      <div class="field"><label><input v-model="form.anon" type="checkbox"> Tampilkan sebagai “Hamba Allah” di daftar donatur</label></div>
+      <div class="field"><label class="flex items-center gap-2 font-medium" style="flex-direction:row"><input v-model="form.anon" type="checkbox" style="width:18px;height:18px;padding:0;flex:none"> Tampilkan sebagai “Hamba Allah” di daftar donatur</label></div>
       <div class="field">
         <label for="donorProgram">Program</label>
         <select id="donorProgram" v-model="form.program"><option v-for="p in PROGRAMS" :key="p.id" :value="p.id">{{ p.name }}</option></select>
@@ -75,9 +84,9 @@ const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', se
         <label for="donorMethod">Metode pembayaran</label>
         <select id="donorMethod" v-model="form.method"><option v-for="m in METHODS" :key="m" :value="m">{{ m }}</option></select>
       </div>
-      <div class="field">
+      <div class="field" :class="{ 'has-error': errors.amount }">
         <label for="donorAmount">Nominal (Rp)</label>
-        <input id="donorAmount" v-model="form.amount" type="number" min="10000" step="1000" inputmode="numeric" placeholder="100000">
+        <input id="donorAmount" v-model="form.amount" type="number" min="10000" step="1000" inputmode="numeric" placeholder="100000" @input="errors.amount = ''">
         <p class="err" role="alert">{{ errors.amount }}</p>
       </div>
       <button type="submit" class="btn btn-primary">Lanjut ke pembayaran</button>
@@ -107,7 +116,7 @@ const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', se
       </div>
 
       <p v-if="PAYMENT.auto" class="text-xs mb-3 text-[#5f736d]">Mode demo: pembayaran tidak diperiksa, donasi langsung dicatat.</p>
-      <p v-if="failed" class="err" role="alert">{{ failed }}</p>
+      <p v-if="failed" class="mb-3 text-sm text-red-700" role="alert">{{ failed }}</p>
       <div class="flex gap-3 flex-wrap">
         <button type="button" class="btn btn-secondary" :disabled="step === 'sending'" @click="step = 'form'">Kembali</button>
         <button type="button" class="btn btn-primary" :disabled="step === 'sending'" @click="paid">{{ step === 'sending' ? 'Mencatat…' : 'Saya sudah bayar' }}</button>

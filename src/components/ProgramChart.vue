@@ -27,8 +27,8 @@ onMounted(() => {
     data: { labels, datasets: [{ data, backgroundColor: '#146b58', borderRadius: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } } },
-      scales: { y: { beginAtZero: true, ticks: { callback: (v) => (v >= 1e6 ? v / 1e6 + ' jt' : v / 1e3 + ' rb') } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } } },
+      scales: { y: { beginAtZero: true, suggestedMax: 100000, ticks: { maxTicksLimit: 5, callback: (v) => (v >= 1e6 ? v / 1e6 + ' jt' : v >= 1e3 ? v / 1e3 + ' rb' : v) } } },
     },
   })
 })
