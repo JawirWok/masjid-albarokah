@@ -1,5 +1,6 @@
 <script setup>
 import { ClockIcon, UserIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import Media from './Media.vue'
 import { MONTHS_SHORT, parseISODate, weekday } from '../data/content'
 import { store } from '../store'
 const props = defineProps({ event: Object })
@@ -8,7 +9,7 @@ const d = parseISODate(props.event.date)
 
 <template>
   <article class="event-card">
-    <img v-if="event.image" :src="event.image.src" :alt="event.image.alt || event.title" class="w-full aspect-video object-cover rounded-xl mb-3" loading="lazy">
+    <Media v-if="event.image" :image="{ ...event.image, alt: event.image.alt || event.title }" cls="event-media" />
     <div class="event-date">
       <span class="event-day">{{ d.getUTCDate() }}</span>
       <span class="event-month">
@@ -16,7 +17,7 @@ const d = parseISODate(props.event.date)
         <span>{{ weekday(event.date) }}</span>
       </span>
     </div>
-    <span class="tag">{{ event.tag }}</span> <span class="tag tag-cat">{{ event.category }}</span>
+    <div class="event-tags"><span class="tag">{{ event.tag }}</span><span class="tag tag-cat">{{ event.category }}</span></div>
     <h3 class="event-title">{{ event.title }}</h3>
     <div class="event-meta">
       <span><ClockIcon class="size-4 inline" />{{ event.time }}</span>

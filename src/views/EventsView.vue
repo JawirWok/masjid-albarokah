@@ -1,6 +1,7 @@
 <script setup>
 import { ClockIcon, UserIcon, MapPinIcon } from '@heroicons/vue/24/outline'
 import { upcomingEvents, MONTHS_SHORT, parseISODate } from '../data/content'
+import Media from '../components/Media.vue'
 import { store } from '../store'
 
 const sorted = upcomingEvents()
@@ -23,8 +24,8 @@ const d = (iso) => parseISODate(iso)
             <span class="yr">{{ d(e.date).getUTCFullYear() }}</span>
           </div>
           <div class="event-row-body">
-            <img v-if="e.image" :src="e.image.src" :alt="e.image.alt || e.title" class="w-full max-w-sm aspect-video object-cover rounded-xl mb-3" loading="lazy">
-            <span class="tag">{{ e.tag }}</span> <span class="tag tag-cat">{{ e.category }}</span>
+            <Media v-if="e.image" :image="{ ...e.image, alt: e.image.alt || e.title }" cls="event-media" />
+            <div class="event-tags"><span class="tag">{{ e.tag }}</span><span class="tag tag-cat">{{ e.category }}</span></div>
             <h3>{{ e.title }}</h3>
             <div class="event-meta">
               <span><ClockIcon class="size-4 inline" />{{ e.time }}</span>

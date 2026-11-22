@@ -3296,3 +3296,33 @@ dialog.lightbox::backdrop{background:#050d0b}
 .ct-layout .map-frame { min-height: 340px; }
 @media (max-width: 900px) { .ct-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .ct-card { padding: 18px; } .ct-value { font-size: 16.5px; } }
+
+/* ===== Gambar ditampilkan utuh + dialog acara ===== */
+/* Tanpa preflight, <dd> bawaan browser punya margin kiri 40px; ratakan. */
+dl, dd { margin: 0; }
+
+/* Foto/poster/logo tidak dipotong: gambar utuh di depan, salinan buram mengisi sisa ruang. */
+.media-fit { position: relative; overflow: hidden; isolation: isolate; }
+.media-fit .media-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(22px) saturate(1.15); transform: scale(1.2); opacity: 0.5; z-index: 0; }
+.media-fit .media-fg { position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.event-media { width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: var(--radius); background: var(--mist-2); }
+.event-row .event-media { max-width: 380px; margin-bottom: 8px; }
+.event-media-lg { margin-bottom: 18px; }
+.event-row:has(.event-media) { align-items: start; }
+
+/* Dialog harus di atas header situs (z-index 60) */
+.base-dialog { position: relative; z-index: 100; }
+
+.ev-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; margin: 0 0 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--mist); }
+.ev-meta dt { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.ev-meta dd { margin: 2px 0 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.ev-meta .full { grid-column: 1 / -1; }
+.ev-bio { margin-bottom: 10px; font-size: 13.5px; font-style: italic; color: var(--muted); }
+.ev-desc { margin-bottom: 22px; font-size: 15px; line-height: 1.7; color: var(--ink-soft); }
+.ev-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 480px) { .ev-meta { grid-template-columns: minmax(0, 1fr); } .ev-actions .btn { flex: 1 1 100%; } }
+
+/* Label acara sejajar (bukan bertumpuk) dan jarak judul dialog (margin utilitas kalah dari reset h2 di atas) */
+.event-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.base-dialog h2 { margin: 0 0 18px; padding-right: 32px; }
