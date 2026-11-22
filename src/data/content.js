@@ -289,7 +289,7 @@ export const ARTICLES = [
 
 export const CONTACT_ITEMS = [
     {
-      label: "WhatsApp Admin Donasi",
+      label: "WhatsApp",
       value: "+62 812-9885-0904",
       href: "https://wa.me/6281298850904",
       icon: "whatsapp",
@@ -391,3 +391,30 @@ export const GALLERY = [
 
 /** Info pembayaran; diisi dari Admin > Donasi > Pembayaran (lewat Supabase). */
 export const PAYMENT = { bank: 'BSI', norek: '', pemilik: '', ewallet: '', wa: '6281298850904', auto: false, qris: [] }
+
+/** Profil masjid; ditimpa dari Admin > Profil Masjid & Kontak (lewat Supabase). */
+export const PROFILE = {
+  alamat: 'Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315',
+  tahun: 2021,
+  kapasitas: 250,
+  lantai: 2,
+  fasilitas: ['Tempat wudhu', 'Toilet', 'Area parkir', 'Ruang sholat utama', 'Aula lantai 2'],
+  visi: 'Menjadi pusat ibadah, ilmu, dan kepedulian sosial yang ramah dan amanah bagi seluruh warga.',
+  misi: [
+    'Menyelenggarakan ibadah dan kajian yang rutin dan terbuka.',
+    'Mengelola donasi secara transparan dan akuntabel.',
+    'Membina generasi muda dan keluarga dhuafa.',
+  ],
+  maps: 'https://maps.app.goo.gl/kzyHBUKtcq12koBo9',
+  lat: -6.3405,
+  lng: 106.6930,
+  hasCoords: false, // true bila pengurus mengisi latitude & longitude di Admin > Kontak
+}
+
+/** Acara yang tanggalnya belum lewat (acara hari ini masih tampil) dan belum ditandai selesai di admin. */
+export const upcomingEvents = () => {
+  const today = jakartaISO()
+  return EVENTS
+    .filter((e) => e.date >= today && e.status !== 'selesai')
+    .sort((a, b) => a.date.localeCompare(b.date))
+}

@@ -1,9 +1,9 @@
 <script setup>
 import { ClockIcon, UserIcon, MapPinIcon } from '@heroicons/vue/24/outline'
-import { EVENTS, MONTHS_SHORT, parseISODate } from '../data/content'
+import { upcomingEvents, MONTHS_SHORT, parseISODate } from '../data/content'
 import { store } from '../store'
 
-const sorted = [...EVENTS].sort((a, b) => a.date.localeCompare(b.date))
+const sorted = upcomingEvents()
 const d = (iso) => parseISODate(iso)
 </script>
 
@@ -14,7 +14,8 @@ const d = (iso) => parseISODate(iso)
       <h1>Agenda masjid</h1>
     </div></div>
     <div class="wrap section-tight">
-      <div class="event-list">
+      <p v-if="!sorted.length" class="page-lead">Belum ada agenda mendatang. Pantau terus informasi terbaru dari pengurus.</p>
+      <div v-else class="event-list">
         <article v-for="e in sorted" :key="e.id" class="event-row">
           <div class="event-date-lg">
             <span class="day">{{ d(e.date).getUTCDate() }}</span>

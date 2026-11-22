@@ -48,9 +48,16 @@ export async function fetchTimes(h) {
 export const live = ref(0)
 const getRows = async (table) => must(await supabase.from(table).select('data').order('pos')).map((r) => r.data)
 
+/** Daftar donatur publik lewat fungsi database; jatuh ke view lama bila fungsinya belum dibuat. */
+async function getDonors() {
+  const r = await supabase.rpc('public_donor_list')
+  if (!r.error) return r.data || []
+  return getRows('public_donors')
+}
+
 /** Program + donatur: dipakai saat start dan setiap ada perubahan realtime. */
 async function loadDonations() {
-  const [programs, donors] = await Promise.all([getRows('programs'), getRows('public_donors')])
+  const [programs, donors] = await Promise.all([getRows('programs'), getDonors()])
   if (programs.length) put(C.PROGRAMS, programs.filter((p) => p.status !== 'selesai'))
   put(C.DONORS, donors)
   put(C.TRANSACTIONS, donors.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 10)
@@ -93,6 +100,14 @@ export async function syncPublic() {
 
     const s = Object.fromEntries(settings.map((r) => [r.key, r.data]))
     if (s.bayar) Object.assign(C.PAYMENT, s.bayar)
+    const pr = s.profil
+    if (pr) {
+      for (const k of ['alamat', 'tahun', 'kapasitas', 'lantai', 'visi']) {
+        if (pr[k] !== '' && pr[k] != null) C.PROFILE[k] = pr[k]
+      }
+      if (pr.fasilitas?.length) C.PROFILE.fasilitas = pr.fasilitas
+      if (pr.misi?.length) C.PROFILE.misi = pr.misi
+    }
     const galeri = s.profil?.galeri
     if (galeri?.length) put(C.GALLERY, galeri.map((g) => ({ src: g.src, alt: g.alt || 'Foto masjid', caption: g.caption || g.alt || '' })))
     const h = s.sholat || {}
@@ -101,8 +116,14 @@ export async function syncPublic() {
     if (h.auto && h.lat && h.lng && h.updated !== today()) fetchTimes(h).then((t) => { Object.assign(h, t); apply() }).catch(() => {})
 
     const k = s.kontak
+    if (k) {
+      if (k.alamat) C.PROFILE.alamat = k.alamat
+      if (k.maps) C.PROFILE.maps = k.maps
+      const num = (v) => (v === '' || v == null || !Number.isFinite(Number(v)) ? null : Number(v))
+      if (num(k.lat) !== null && num(k.lng) !== null) { C.PROFILE.lat = num(k.lat); C.PROFILE.lng = num(k.lng); C.PROFILE.hasCoords = true }
+    }
     if (k?.wa) {
-      const items = [{ label: 'WhatsApp Admin Donasi', value: '+' + k.wa, href: 'https://wa.me/' + k.wa, icon: 'whatsapp', hint: 'Konfirmasi donasi & informasi kegiatan' }]
+      const items = [{ label: 'WhatsApp', value: '+' + k.wa, href: 'https://wa.me/' + k.wa, icon: 'whatsapp', hint: 'Konfirmasi donasi & informasi kegiatan' }]
       if (k.instagram) items.push({ label: 'Instagram', value: '@' + k.instagram, href: 'https://www.instagram.com/' + k.instagram, icon: 'instagram', hint: 'Kabar kegiatan harian' })
       if (k.email) items.push({ label: 'Email', value: k.email, href: 'mailto:' + k.email, icon: 'mail', hint: 'Surat resmi & kerja sama' })
       if (k.alamat) items.push({ label: 'Alamat masjid', value: k.alamat, href: k.maps || '#', icon: 'pin', hint: 'Buka peta lokasi' })

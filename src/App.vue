@@ -1,7 +1,7 @@
 <script setup>
 import { ref, defineAsyncComponent } from 'vue'
 import { Disclosure, DisclosureButton } from '@headlessui/vue'
-import { Bars3Icon, XMarkIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
 import BrandMark from './components/BrandMark.vue'
 import HomeView from './views/HomeView.vue'
 import ProfilView from './views/ProfilView.vue'
@@ -14,10 +14,12 @@ import DonationDialog from './components/DonationDialog.vue'
 import { CONTACT_ITEMS } from './data/content'
 import { store } from './store'
 
+// Donasi tidak ada di NAV: di header cukup satu tombol "Donasi".
 const NAV = [
   ['beranda', 'Beranda'], ['profil', 'Profil'], ['acara', 'Kajian & Acara'],
-  ['kegiatan', 'Kegiatan'], ['berita', 'Berita'], ['donasi', 'Donasi'],
+  ['kegiatan', 'Kegiatan'], ['berita', 'Berita'],
 ]
+const FOOTER_NAV = [...NAV, ['donasi', 'Donasi']]
 const VIEWS = { beranda: HomeView, profil: ProfilView, donasi: DonationView, acara: EventsView, kegiatan: ActivitiesView, berita: NewsView }
 const AdminApp = defineAsyncComponent(() => import('./admin/AdminApp.vue'))
 const year = ref(new Date().getFullYear())
@@ -40,7 +42,9 @@ const year = ref(new Date().getFullYear())
         <nav class="main-nav" :class="{ 'is-open': open }" aria-label="Navigasi utama">
           <button v-for="[id, label] in NAV" :key="id" type="button" class="nav-link"
                   :aria-current="store.view === id ? 'page' : undefined" @click="store.go(id); close()">{{ label }}</button>
-          <button type="button" class="nav-link" @click="store.goContact(); close()">Kontak</button>
+          <!-- hanya tampil di layar kecil (tombol header disembunyikan di sana) -->
+          <button type="button" class="nav-link nav-donasi" :aria-current="store.view === 'donasi' ? 'page' : undefined"
+                  @click="store.go('donasi'); close()">Donasi</button>
         </nav>
         <div class="header-actions">
           <button type="button" class="btn btn-primary btn-sm header-cta" @click="store.go('donasi')">Donasi</button>
@@ -64,7 +68,7 @@ const year = ref(new Date().getFullYear())
         </div>
         <nav class="footer-nav" aria-label="Navigasi footer">
           <span class="footer-heading">Jelajahi</span>
-          <button v-for="[id, label] in NAV" :key="id" type="button" @click="store.go(id)">{{ label }}</button>
+          <button v-for="[id, label] in FOOTER_NAV" :key="id" type="button" @click="store.go(id)">{{ label }}</button>
         </nav>
         <div class="footer-contact">
           <span class="footer-heading">Hubungi</span>
@@ -73,7 +77,6 @@ const year = ref(new Date().getFullYear())
       </div>
       <div class="wrap footer-bottom">
         <p>© {{ year }} Masjid Jami' Al-Barokah. <a href="#admin" @click.prevent="store.go('admin')">Admin</a></p>
-        <button type="button" class="text-link" @click="store.goContact()">Kontak pengurus <ArrowRightIcon class="size-4 inline" /></button>
       </div>
     </footer>
 

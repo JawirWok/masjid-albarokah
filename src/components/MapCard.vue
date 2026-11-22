@@ -1,34 +1,32 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import L from 'leaflet'
-import { ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { computed } from 'vue'
+import { ArrowUpRightIcon } from '@heroicons/vue/24/outline'
+import { PROFILE } from '../data/content'
 
-// Koordinat perkiraan area Babakan, Setu — sesuaikan dengan titik Google Maps masjid.
-const POS = [-6.3405, 106.6930]
-const el = ref(null)
-let map
-
-onMounted(() => {
-  map = L.map(el.value, { scrollWheelZoom: false }).setView(POS, 16)
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; OpenStreetMap',
-  }).addTo(map)
-  L.circleMarker(POS, { radius: 10, color: '#0b4036', fillColor: '#146b58', fillOpacity: 0.9 })
-    .addTo(map).bindPopup("Masjid Jami' Al-Barokah")
+// Pakai koordinat dari Admin > Kontak bila diisi; kalau belum, Google mencari lewat nama + alamat masjid.
+const src = computed(() => {
+  const q = PROFILE.hasCoords ? `${PROFILE.lat},${PROFILE.lng}` : `Masjid Jami' Al-Barokah ${PROFILE.alamat}`
+  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=16&output=embed`
 })
-onBeforeUnmount(() => map?.remove())
+// "Jl. X, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten" -> "Babakan, Kec. Setu, Tangerang Selatan"
+const area = computed(() => {
+  const parts = PROFILE.alamat.split(',').map((s) => s.trim()).filter(Boolean)
+  return parts.length > 3 ? parts.slice(1, 4).join(', ').replace('Kota ', '') : PROFILE.alamat
+})
 </script>
 
 <template>
   <div class="map-card">
-    <div class="map-frame"><div ref="el" class="h-full w-full min-h-72" role="region" aria-label="Peta lokasi masjid"></div></div>
+    <div class="map-frame">
+      <iframe :src="src" title="Peta lokasi Masjid Jami' Al-Barokah" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    </div>
     <div class="map-info">
       <div>
-        <span class="map-label">Alamat</span>
-        <strong>Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315</strong>
+        <span class="map-label">Titik lokasi</span>
+        <strong>{{ area }}</strong>
       </div>
-      <a class="text-link" href="https://maps.app.goo.gl/kzyHBUKtcq12koBo9" target="_blank" rel="noopener">
-        Buka di Google Maps <ArrowRightIcon class="size-4 inline" />
+      <a class="btn btn-primary btn-sm" :href="PROFILE.maps" target="_blank" rel="noopener">
+        Buka di Google Maps <ArrowUpRightIcon class="size-4" />
       </a>
     </div>
   </div>

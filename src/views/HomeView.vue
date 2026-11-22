@@ -5,13 +5,11 @@ import EventCard from '../components/EventCard.vue'
 import ActivityCard from '../components/ActivityCard.vue'
 import ArticleCard from '../components/ArticleCard.vue'
 import ContactSection from '../components/ContactSection.vue'
-import { EVENTS, ACTIVITIES, ARTICLES, TODAY_ISO } from '../data/content'
+import { ACTIVITIES, ARTICLES, upcomingEvents } from '../data/content'
 import { store } from '../store'
 
 const byDateDesc = (a, b) => b.date.localeCompare(a.date)
-const sorted = [...EVENTS].sort((a, b) => a.date.localeCompare(b.date))
-const upcoming = sorted.filter((e) => e.date >= TODAY_ISO)
-const events = (upcoming.length ? upcoming : sorted).slice(0, 3)
+const events = upcomingEvents().slice(0, 3)
 const activities = [...ACTIVITIES].sort(byDateDesc).slice(0, 3)
 const articles = [...ARTICLES].sort(byDateDesc).slice(0, 3)
 </script>
@@ -44,7 +42,8 @@ const articles = [...ARTICLES].sort(byDateDesc).slice(0, 3)
           <div><p class="eyebrow">Kajian &amp; acara</p><h2 id="h-acara">Agenda yang menanti jamaah</h2></div>
           <button type="button" class="text-link" @click="store.go('acara')">Lihat semua agenda <ArrowRightIcon class="size-4 inline" /></button>
         </div>
-        <div class="event-grid"><EventCard v-for="e in events" :key="e.id" :event="e" /></div>
+        <div v-if="events.length" class="event-grid"><EventCard v-for="e in events" :key="e.id" :event="e" /></div>
+        <p v-else class="page-lead">Belum ada agenda mendatang. Pantau terus informasi terbaru dari pengurus.</p>
       </div>
     </section>
 
