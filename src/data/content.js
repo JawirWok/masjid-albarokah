@@ -383,10 +383,13 @@ export function jakartaISO() {
 export const TODAY_ISO = jakartaISO()
 
 export const GALLERY = [
-  { src: 'assets/stock/masjid-galeri-1.jpg', caption: 'Ruang sholat utama', alt: 'Interior ruang sholat dengan langit-langit geometris dan karpet biru.' },
-  { src: 'assets/stock/masjid-galeri-2.jpg', caption: 'Serambi dan halaman masjid', alt: 'Halaman dalam masjid dengan deretan lengkungan dan menara saat matahari terbenam.' },
-  { src: 'assets/stock/masjid-galeri-3.jpg', caption: 'Menara dan kubah', alt: 'Detail menara dan kubah masjid dengan ornamen bulan sabit.' },
-  { src: 'assets/stock/masjid-galeri-4.jpg', caption: 'Sholat berjamaah', alt: 'Jamaah melaksanakan sholat berjamaah di ruang utama masjid.' },
+  { src: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1600&q=85', caption: 'Ruang sholat utama', alt: 'Ruang sholat utama' },
+  { src: 'https://images.unsplash.com/photo-1564769625905-50e93615e769?auto=format&fit=crop&w=1600&q=85', caption: 'Aula lantai 2', alt: 'Aula lantai 2' },
+  { src: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1600&q=85', caption: 'Tempat wudhu', alt: 'Tempat wudhu' },
+  { src: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?auto=format&fit=crop&w=1600&q=85', caption: 'Toilet', alt: 'Toilet' },
+  { src: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1600&q=85', caption: 'Area parkir', alt: 'Area parkir' },
+  { src: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1600&q=85', caption: 'Serambi dan halaman masjid', alt: 'Serambi dan halaman masjid' },
+  { src: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1600&q=85', caption: 'Menara dan kubah', alt: 'Menara dan kubah' },
 ]
 
 /** Info pembayaran; diisi dari Admin > Donasi > Pembayaran (lewat Supabase). */
