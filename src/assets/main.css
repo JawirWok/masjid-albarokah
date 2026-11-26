@@ -3211,10 +3211,6 @@ dialog.lightbox::backdrop{background:#050d0b}
 .reader-back { display: flex; width: fit-content; }
 .reader > .eyebrow { display: flex; }
 
-/* ===== Halaman Donasi ===== */
-/* Judul halaman ini memakai font sans seperti desain; hapus aturan di bawah bila ingin kembali ke font judul situs (Marcellus). */
-.don h1, .don h2, .don h3 { font-family: var(--font-ui); font-weight: 700; letter-spacing: -0.02em; }
-
 .don-hero {
   position: relative; overflow: hidden; padding: 56px 0 112px; color: #fff;
   /* Letakkan foto latar di public/assets/donasi-hero.jpg (opsional). Tanpa foto, latar hijau polos. */
@@ -3272,7 +3268,6 @@ dialog.lightbox::backdrop{background:#050d0b}
 
 /* ===== Section Kontak ===== */
 /* Judul memakai font sans seperti desain; hapus satu aturan ".ct h2" bila ingin kembali ke font judul situs. */
-.ct h2 { font-family: var(--font-ui); font-weight: 700; letter-spacing: -0.02em; }
 .ct-head { max-width: 60ch; margin-bottom: 32px; }
 .ct-head h2 { margin-top: 8px; font-size: clamp(1.85rem, 3vw, 2.5rem); }
 .ct-lead { margin-top: 12px; font-size: 16px; line-height: 1.7; color: var(--ink-soft); }
@@ -3326,3 +3321,192 @@ dl, dd { margin: 0; }
 /* Label acara sejajar (bukan bertumpuk) dan jarak judul dialog (margin utilitas kalah dari reset h2 di atas) */
 .event-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .base-dialog h2 { margin: 0 0 18px; padding-right: 32px; }
+
+/* ===== Halaman Program ===== */
+.prg { padding-bottom: 80px; }
+.prg-group + .prg-group { margin-top: 56px; }
+.prg-head { margin-bottom: 22px; }
+.prg-head h2 { margin-top: 8px; font-size: clamp(1.5rem, 2.4vw, 2rem); }
+.prg-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.prg-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+.prg-media { aspect-ratio: 3 / 2; background: var(--mist-2); }
+.prg-body { display: flex; flex-direction: column; gap: 9px; padding: 20px 22px 22px; }
+.prg-body h3 { font-size: 21px; line-height: 1.3; }
+.prg-body p { font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+.prg-body .prg-sched { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--green-700); }
+.prg-body .chip-list { margin: 4px 0 0; }
+@media (max-width: 1080px) { .prg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .prg-grid { grid-template-columns: minmax(0, 1fr); } .prg-group + .prg-group { margin-top: 44px; } }
+
+/* ===== Banner halaman (Program, Berita) mengikuti gaya Donasi ===== */
+.page-intro {
+  position: relative; overflow: hidden; padding: 56px 0 64px; color: #fff; border-bottom: 0;
+  background: linear-gradient(100deg, rgba(6, 46, 39, 0.97) 0%, rgba(6, 46, 39, 0.88) 55%, rgba(6, 46, 39, 0.62) 100%), url("/assets/donasi-hero.jpg") center / cover no-repeat, #062e27;
+}
+.page-intro::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cpath d='M44 6l8.5 22.5L75 38l-22.5 8.5L44 69l-8.5-22.5L13 38l22.5-9.5z' fill='none' stroke='%23a8d6c6' stroke-width='1'/%3E%3C/svg%3E");
+}
+.page-intro .wrap { position: relative; }
+.page-intro h1 { color: #fff; }
+.page-intro .eyebrow { color: #9fd3c2; }
+.page-intro .page-lead { color: #cfe6de; }
+.view:has(> .page-intro) { background: var(--mist); min-height: 60vh; }
+@media (max-width: 720px) { .page-intro { padding: 40px 0 48px; } }
+
+/* ===== Tombol "< Beranda" (dipakai di banner gelap) ===== */
+.back-home {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 18px; padding: 7px 14px 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.32); border-radius: 999px; background: rgba(255, 255, 255, 0.08);
+  color: #fff; font: 600 13.5px/1.2 var(--font-ui); cursor: pointer; transition: background-color 0.2s ease;
+}
+.back-home:hover { background: rgba(255, 255, 255, 0.18); }
+.pf .back-home { font-size: 13.5px; font-weight: 600; }
+
+.don-hero { padding-bottom: 64px; }
+.don-programs { margin-top: 40px; }
+@media (max-width: 720px) { .don-hero { padding-bottom: 48px; } }
+
+/* ===== Pencarian & pagination berita ===== */
+.news-tools { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 26px; }
+.news-search { position: relative; flex: 1 1 260px; }
+.news-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.news-search input, .news-select { min-height: 46px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: #fff; color: var(--ink); font: inherit; font-size: 14.5px; }
+.news-search input { width: 100%; padding: 0 14px 0 40px; }
+.news-select { padding: 0 12px; min-width: 190px; }
+.news-search input:focus, .news-select:focus { outline: 3px solid rgba(42, 127, 168, 0.25); outline-offset: 1px; border-color: var(--blue-600); }
+.pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin-top: 34px; }
+.pager button { display: inline-grid; place-items: center; min-width: 42px; height: 42px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink-soft); font: 600 14px var(--font-ui); cursor: pointer; }
+.pager button:hover:not(:disabled) { border-color: var(--green-700); color: var(--green-900); }
+.pager button.is-active { background: var(--green-900); border-color: var(--green-900); color: #fff; }
+.pager button:disabled { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 560px) { .news-select { width: 100%; } }
+
+/* ===== Program: aksi kartu, CTA detail, isi HTML ===== */
+.prg-body { flex: 1; }
+.prg-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 8px; }
+.prg-cta { margin-top: 30px; }
+.prose h3 { margin: 26px 0 10px; font-size: 20px; color: var(--ink); }
+.prose ol { margin: 16px 0; padding-left: 22px; }
+.prose a { text-decoration: underline; text-underline-offset: 3px; }
+.prose img { margin: 20px 0; border-radius: var(--radius); }
+
+/* ===== Slider program di beranda ===== */
+.pcar { position: relative; }
+.pcar-track { display: flex; gap: 20px; padding: 4px 2px 8px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.pcar-track::-webkit-scrollbar { display: none; }
+.pcar-dots { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
+.pcar-dots button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 999px; background: var(--line-strong); cursor: pointer; transition: width .25s ease, background-color .25s ease; }
+.pcar-dots button.on { width: 28px; background: var(--green-700); }
+.pcar-card { flex: 0 0 calc((100% - 40px) / 3); display: flex; flex-direction: column; overflow: hidden; scroll-snap-align: start; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: inherit; text-decoration: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.pcar-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+.pcar-media { aspect-ratio: 3 / 2; background: var(--mist-2); }
+.pcar-body { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px 20px; }
+.pcar-body strong { font-family: var(--font-display); font-size: 21px; font-weight: 400; line-height: 1.3; color: var(--ink); }
+.pcar-body span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+.pcar-btn { position: absolute; top: 40%; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; background: #fff; color: var(--green-900); box-shadow: 0 6px 18px -6px rgba(6, 46, 39, 0.4); cursor: pointer; transform: translateY(-50%); }
+.pcar-btn:hover { background: var(--green-900); border-color: var(--green-900); color: #fff; }
+.pcar-prev { left: 8px; }
+.pcar-next { right: 8px; }
+@media (min-width: 1280px) { .pcar-prev { left: -22px; } .pcar-next { right: -22px; } }
+@media (max-width: 1080px) { .pcar-card { flex-basis: calc((100% - 20px) / 2); } }
+@media (max-width: 720px) { .pcar-card { flex-basis: 84%; } .pcar-btn { width: 40px; height: 40px; } }
+
+.ct h2, .ct-value { font-family: var(--font-display); font-weight: 400; }
+.ct-value { font-size: 20px; letter-spacing: 0; }
+
+.hero::before {
+  opacity: 0.24;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cpath d='M44 6l8.5 22.5L75 38l-22.5 8.5L44 69l-8.5-22.5L13 38l22.5-9.5z' fill='none' stroke='%23146b58' stroke-width='1.8'/%3E%3C/svg%3E");
+}
+
+/* ===== Kontak: daftar ringkas ===== */
+.ct.section { padding: 64px 0; }
+.ct-head { margin-bottom: 24px; }
+.ct-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ct-list { list-style: none; margin: 0; padding: 6px 22px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; box-shadow: var(--shadow-sm); }
+.ct-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.ct-row:last-child { border-bottom: 0; }
+.ct-row .ct-icon { width: 40px; height: 40px; border-radius: 12px; }
+.ct-row .ct-text { flex: 1; }
+.ct-row .ct-value { font-size: 16px; line-height: 1.35; }
+.ct-tools { display: flex; gap: 6px; flex: none; }
+.ct-tool { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line-strong); border-radius: 9px; background: #fff; color: var(--green-800); cursor: pointer; }
+.ct-tool:hover { background: var(--green-50); border-color: var(--green-700); }
+.ct-tool.is-done { background: var(--green-100); border-color: var(--green-700); color: var(--green-700); }
+.ct-layout .map-frame { min-height: 300px; }
+@media (max-width: 900px) { .ct-layout { grid-template-columns: minmax(0, 1fr); } .ct-layout .map-frame { min-height: 260px; } }
+@media (max-width: 560px) { .ct-list { padding: 4px 16px; } .ct-row .ct-value { font-size: 15px; } }
+
+.article-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.article-date { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.article-foot .article-author { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.article-foot .text-link { flex: none; }
+
+.brand-mark { object-fit: contain; }
+
+/* Animasi gambar berita & kartu (compositor-only, opt-in ketika reduced motion tidak aktif) */
+.news-empty { display: grid; justify-items: start; gap: 14px; padding: 12px 0; }
+.article-card { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+.article-card:hover, .article-card:focus-within { border-color: var(--line-strong); box-shadow: var(--shadow-sm); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .article-media .media-fg,
+  .pcar-media .media-fg,
+  .prg-media .media-fg {
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .article-media .media-bg,
+  .pcar-media .media-bg,
+  .prg-media .media-bg {
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  }
+  .article-card:hover .article-media .media-fg,
+  .article-card:focus-within .article-media .media-fg,
+  .pcar-card:hover .pcar-media .media-fg,
+  .pcar-card:focus-visible .pcar-media .media-fg,
+  .prg-card:hover .prg-media .media-fg,
+  .prg-card:focus-within .prg-media .media-fg {
+    transform: scale(1.045);
+  }
+  .article-card:hover .article-media .media-bg,
+  .article-card:focus-within .article-media .media-bg,
+  .pcar-card:hover .pcar-media .media-bg,
+  .pcar-card:focus-visible .pcar-media .media-bg,
+  .prg-card:hover .prg-media .media-bg,
+  .prg-card:focus-within .prg-media .media-bg {
+    transform: scale(1.24);
+    opacity: 0.62;
+  }
+  .article-card:active .article-media .media-fg,
+  .pcar-card:active .pcar-media .media-fg,
+  .prg-card:active .prg-media .media-fg {
+    transform: scale(1.02);
+  }
+
+  @keyframes media-enter {
+    from { opacity: 0; transform: scale(0.985); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .reader-media .media-fg {
+    animation: media-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    @keyframes img-reveal {
+      from { opacity: 0.72; scale: 0.96; }
+      to { opacity: 1; scale: 1; }
+    }
+    .article-media,
+    .prg-media {
+      animation: img-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+/* Kontak: tinggi daftar mengikuti isinya, tidak ditarik setinggi peta */
+.ct-layout { align-items: start; }
+.ct-list { align-self: start; }
+.ct-row .ct-text { min-width: 0; }

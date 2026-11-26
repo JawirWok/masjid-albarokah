@@ -30,6 +30,5 @@ const { next, left, state, date } = usePrayer()
         <time class="p-time">{{ p.time }}</time>
       </li>
     </ul>
-    <p class="prayer-note">Zona waktu WIB. Jadwal dapat menyesuaikan pengumuman pengurus masjid.</p>
   </aside>
 </template>

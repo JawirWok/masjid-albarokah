@@ -1,4 +1,3 @@
-
 export const numberFormat = new Intl.NumberFormat("id-ID");
 export const rupiah = (value) => "Rp" + numberFormat.format(value);
 export const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
@@ -23,6 +22,12 @@ export const IMG = {
       width: 1400,
       height: 933,
       alt: "Jamaah membaca Al-Qur'an bersama di dalam masjid."
+    },
+    galeri1: {
+      src: "assets/stock/masjid-galeri-1.jpg",
+      width: 1400,
+      height: 933,
+      alt: "Interior ruang sholat masjid dengan ornamen geometris."
     }
   };
 
@@ -61,136 +66,66 @@ export const PROGRAMS = [
     }
   ];
 
-export const DONORS = [
-    { name: "Hamba Allah", program: "umum", date: "2026-10-24", amount: 500000, method: "BSI" },
-    { name: "Keluarga Wijaya", program: "pembangunan", date: "2026-10-23", amount: 2500000, method: "BSI" },
-    { name: "Ibu Siti Aminah", program: "umum", date: "2026-10-22", amount: 300000, method: "QRIS" },
-    { name: "Anonim", program: "pembangunan", date: "2026-10-20", amount: 5000000, method: "Mandiri" },
-    { name: "Hamba Allah", program: "umum", date: "2026-10-19", amount: 150000, method: "QRIS" },
-    { name: "Ibu Ratna Dewi", program: "pembangunan", date: "2026-10-18", amount: 750000, method: "E-wallet" }
-  ];
+export const DONORS = [];
 
-export const TRANSACTIONS = [
-    { date: "2026-10-24", program: "umum", amount: 500000, status: "Terverifikasi" },
-    { date: "2026-10-23", program: "pembangunan", amount: 2500000, status: "Terverifikasi" },
-    { date: "2026-10-22", program: "umum", amount: 300000, status: "Terverifikasi" },
-    { date: "2026-10-21", program: "pembangunan", amount: 1500000, status: "Terverifikasi" },
-    { date: "2026-10-20", program: "pembangunan", amount: 5000000, status: "Terverifikasi" },
-    { date: "2026-10-19", program: "umum", amount: 150000, status: "Menunggu verifikasi" }
-  ];
+export const TRANSACTIONS = [];
 
-export const EVENTS = [
-    {
-      id: "tablig-akbar",
-      title: "Tablig Akbar: Menjaga Ukhuwah di Era Digital",
-      date: "2026-11-14",
-      time: "19.30 – 21.30 WIB",
-      speaker: "Ust. Dr. Ahmad Fauzan, Lc., M.A.",
-      category: "Umum",
-      bio: "Dosen dan pendakwah dengan fokus kajian ukhuwah dan media.",
-      location: "Ruang utama masjid",
-      tag: "Kajian akbar",
-      desc: "Kajian kebangsaan tentang cara menjaga persaudaraan di tengah arus informasi digital. Terbuka untuk jamaah umum, ikhwan dan akhwat, dengan area parkir tambahan di halaman sekolah sebelah."
-    },
-    {
-      id: "kajian-tafsir",
-      title: "Kajian Tafsir: Menyelami Surah Al-Hujurat",
-      date: "2026-11-22",
-      time: "08.00 – 10.00 WIB",
-      speaker: "Ust. Muhammad Ridwan, S.Ag.",
-      category: "Khusus Ikhwan",
-      bio: "Pengajar tafsir di berbagai majelis taklim warga.",
-      location: "Aula lantai 2",
-      tag: "Kajian rutin",
-      desc: "Membahas adab sosial dan menjaga lisan melalui tafsir Surah Al-Hujurat. Peserta disarankan membawa Al-Qur'an dan buku catatan."
-    },
-    {
-      id: "santunan-yatim",
-      title: "Santunan Yatim & Dhuafa Akhir Tahun",
-      date: "2026-12-05",
-      time: "09.00 – 12.00 WIB",
-      speaker: "Panitia Sosial & Ust. Abdurrahman",
-      category: "Umum",
-      bio: "Pembina sosial dan pengurus lembaga amil setempat.",
-      location: "Halaman masjid",
-      tag: "Sosial",
-      desc: "Penyaluran santunan, paket sekolah, dan kebutuhan pokok bagi anak yatim serta keluarga dhuafa binaan masjid. Donatur dapat hadir langsung untuk menyerahkan santunan."
-    },
-    {
-      id: "mabit-remaja",
-      title: "Malam Bina Iman & Taqwa (MABIT) Remaja",
-      date: "2026-12-19",
-      time: "20.00 WIB – 04.30 WIB",
-      speaker: "Ust. Fikri Haikal",
-      category: "Khusus Akhwat",
-      bio: "Pembina remaja masjid dan mentor kajian pemuda.",
-      location: "Masjid & aula",
-      tag: "Remaja",
-      desc: "Malam pembinaan remaja berisi kajian, qiyamul lail, dan kegiatan kelompok. Pendaftaran melalui WhatsApp admin dengan kuota terbatas."
-    },
-    {
-      id: "kerja-bakti",
-      title: "Kerja Bakti & Bersih Masjid Menyambut Ramadan",
-      date: "2027-02-06",
-      time: "07.00 – 11.00 WIB",
-      speaker: "Pengurus DKM & relawan",
-      category: "Umum",
-      bio: "Koordinator relawan dan pengurus DKM Al-Barokah.",
-      location: "Area masjid",
-      tag: "Gotong royong",
-      desc: "Membersihkan ruang sholat, merawat taman, dan menyiapkan fasilitas menjelang Ramadan. Warga dipersilakan membawa peralatan kebersihan."
-    }
-  ];
-
-export const ACTIVITIES = [
-    {
-      id: "jumat-berkah",
-      date: "2026-10-30",
-      title: "Jum'at Berkah",
-      schedule: "Setiap Jumat · 11.30 WIB",
-      pic: "Seksi Sosial & Kemaslahatan",
-      desc: "Pembagian makan siang gratis setelah sholat Jumat untuk jamaah, pekerja jalan, dan warga yang membutuhkan.",
-      image: IMG.jumat
-    },
-    {
-      id: "bakti-sosial",
-      date: "2026-11-01",
-      title: "Bakti Sosial Warga",
-      schedule: "Ahad pertama tiap bulan · 08.00 WIB",
-      pic: "Seksi Sosial",
-      desc: "Penyaluran sembako, pemeriksaan kesehatan gratis, dan kunjungan ke rumah warga lanjut usia.",
-      image: IMG.bakti
-    },
-    {
-      id: "kajian-rutin",
-      date: "2026-11-02",
-      title: "Kajian Ba'da Maghrib",
-      schedule: "Senin & Kamis · setelah Maghrib",
-      pic: "Seksi Dakwah",
-      desc: "Kajian tematik fiqih dan akhlak bersama ustaz setempat, terbuka untuk jamaah umum dan remaja.",
-      image: IMG.kajian
-    },
-    {
-      id: "tahsin",
-      date: "2026-11-01",
-      title: "Tahsin & Tahfiz Al-Qur'an",
-      schedule: "Setiap Ahad · 08.00 – 10.00 WIB",
-      pic: "Seksi Pendidikan",
-      desc: "Kelas memperbaiki bacaan Al-Qur'an untuk dewasa dan anak, dibimbing pengajar yang berpengalaman.",
-      image: IMG.kajian
-    },
-    {
-      id: "kerja-bakti-rutin",
-      date: "2026-11-07",
-      title: "Kerja Bakti Masjid",
-      schedule: "Sabtu pekan pertama · 07.00 WIB",
-      pic: "Seksi Sarana & Prasarana",
-      desc: "Membersihkan area masjid, merawat taman, dan menyiapkan fasilitas menjelang kegiatan besar.",
-      image: IMG.bakti
-    }
-  ];
+export const ACTIVITIES = [];
 
 export const ARTICLES = [
+    {
+      id: "fikih-wudhu-batal-dan-sunnah",
+      title: "Fikih Wudhu: Hal yang Membatalkan dan Sunnah Saat Bersuci",
+      category: "Fikih",
+      author: "Seksi Dakwah Masjid Jami' Al-Barokah",
+      date: "2026-11-25",
+      read: 4,
+      excerpt: "Wudhu adalah syarat sah sholat. Memahami pembatal dan sunnahnya membantu jamaah menjaga kesucian ibadah sehari-hari.",
+      image: IMG.kajian,
+      body: `<p>Wudhu bukan sekadar membasuh anggota badan sebelum sholat, tetapi syarat sah ibadah yang diatur jelas dalam fikih thaharah. Karena dikerjakan minimal lima kali sehari, memahami batas antara hal yang wajib, sunnah, dan membatalkan wudhu sangat penting bagi setiap muslim.</p>
+<h2>Hal yang membatalkan wudhu</h2>
+<p>Mayoritas ulama merangkum beberapa sebab batalnya wudhu agar jamaah tidak ragu ketika sudah berada di dalam masjid:</p>
+<ul><li>Keluarnya sesuatu dari dua jalan (qubul atau dubur), termasuk buang angin, buang air kecil, maupun buang air besar.</li><li>Tidur lelap dalam posisi berbaring atau tidak menapakkan tempat duduk dengan mantap sehingga kesadaran hilang.</li><li>Hilangnya akal karena pingsan, mabuk, atau sakit berat.</li><li>Menyentuh kemaluan secara langsung dengan telapak tangan tanpa penghalang menurut sebagian mazhab, termasuk mazhab Syafi'i.</li></ul>
+<h2>Sunnah yang sering terlewat</h2>
+<p>Selain enam rukun wudhu (niat, membasuh wajah, membasuh kedua tangan hingga siku, mengusap sebagian kepala, membasuh kedua kaki hingga mata kaki, serta tertib), ada sunnah yang menyempurnakan wudhu:</p>
+<ul><li>Membaca basmalah sebelum mulai membasuh kedua telapak tangan.</li><li>Berkumur dan memasukkan air ke hidung (istinsyaq) lalu mengeluarkannya.</li><li>Mendahulukan anggota tubuh sebelah kanan sebelum sebelah kiri.</li><li>Menyela-nyela jari tangan dan kaki serta membaca doa setelah selesai berwudhu.</li></ul>
+<blockquote>Jika muncul keraguan setelah berwudhu apakah sudah batal atau belum, pegang keyakinan yang lebih kuat: seseorang tetap dalam keadaan suci sampai ada tanda batal yang nyata.</blockquote>`
+    },
+    {
+      id: "fikih-makmum-masbuk-sholat-berjamaah",
+      title: "Fikih Sholat Berjamaah: Tata Cara Makmum Masbuk dan Shaf",
+      category: "Fikih",
+      author: "Seksi Dakwah Masjid Jami' Al-Barokah",
+      date: "2026-11-22",
+      read: 4,
+      excerpt: "Datang terlambat saat imam sudah mulai sholat memiliki aturan tersendiri. Begini cara menyusul rakaat dengan tenang.",
+      image: IMG.galeri1,
+      body: `<p>Dalam sholat berjamaah, sering kali jamaah datang ketika imam sudah rukuk, sujud, atau bahkan berada di rakaat terakhir. Kondisi ini dalam fikih disebut makmum masbuk, dan syariat memberi panduan jelas agar jamaah tidak tergesa-gesa.</p>
+<h2>Kapan satu rakaat dihitung sah</h2>
+<p>Makmum masbuk dihitung mendapatkan rakaat bersama imam apabila ia sempat bertakbiratul ihram lalu mengikuti rukuk imam dengan tuma'ninah sebelum imam bangkit untuk iktidal. Jika imam sudah bangkit dari rukuk, maka makmum langsung mengikuti gerakan imam saat itu, tetapi rakaat tersebut belum terhitung.</p>
+<h2>Langkah praktis saat menyusul imam</h2>
+<ul><li>Berjalan tenang menuju shaf tanpa berlari, lalu berdiri tegak untuk takbiratul ihram.</li><li>Langsung mengikuti posisi imam saat itu, baik sedang berdiri, rukuk, sujud, maupun duduk tasyahud.</li><li>Setelah imam mengucapkan salam pertama dan kedua, makmum masbuk berdiri tanpa mengucap salam untuk menyempurnakan kekurangan rakaatnya.</li><li>Pada rakaat tambahan, bacaan Al-Fatihah dan tahiyat disesuaikan dengan urutan rakaat yang kurang.</li></ul>
+<h2>Adab mengisi dan merapatkan shaf</h2>
+<p>Jika shaf terdepan masih memiliki celah kosong, isilah bagian tersebut terlebih dahulu dari sisi tengah mendekat ke belakang imam. Apabila shaf penuh dan Anda datang seorang diri, cari jamaah lain jika ada agar tidak sholat sendirian di belakang shaf.</p>`
+    },
+    {
+      id: "fikih-perbedaan-zakat-infaq-sedekah",
+      title: "Fikih Harta: Perbedaan Zakat, Infaq, dan Sedekah",
+      category: "Fikih",
+      author: "Sekretariat Masjid Jami' Al-Barokah",
+      date: "2026-11-18",
+      read: 3,
+      excerpt: "Ketiganya sama-sama bentuk berbagi harta, tetapi hukum, batas nominal, dan penerimanya berbeda menurut fikih.",
+      image: IMG.bakti,
+      body: `<p>Masyarakat sering menyamakan zakat, infaq, dan sedekah karena ketiganya berkaitan dengan pengeluaran harta di jalan kebaikan. Memahami perbedaannya membantu muzakki dan donatur menyalurkan dana sesuai tuntunan fikih.</p>
+<h2>Zakat: kewajiban dengan syarat nishab</h2>
+<p>Zakat adalah kewajiban bagi muslim yang hartanya mencapai batas minimal (nishab) dan tersimpan selama satu tahun hijriah (haul) untuk zakat mal, atau dikeluarkan pada bulan Ramadan untuk zakat fitrah. Penyalurannya terikat kepada delapan golongan penerima (asnaf) seperti fakir, miskin, amil, mualaf, hingga ibnu sabil.</p>
+<h2>Infaq: pengeluaran harta tanpa batas nishab</h2>
+<p>Infaq bersifat sukarela atau sesuai kebutuhan sosial dan kemaslahatan umat. Tidak ada syarat nishab maupun haul, dan pemanfaatannya lebih luas, mulai dari pembangunan fasilitas masjid, operasional pendidikan TPQ, hingga bantuan warga terdampak musibah.</p>
+<h2>Sedekah: cakupan paling luas</h2>
+<p>Sedekah mencakup pemberian harta maupun kebaikan non-materi seperti tenaga, ilmu, atau sikap ramah kepada sesama. Karena cakupannya luas, sedekah dapat dilakukan kapan saja tanpa menunggu jumlah tertentu.</p>
+<ul><li>Zakat wajib ditunaikan bila syarat nishab dan haul terpenuhi, dengan penerima khusus delapan asnaf.</li><li>Infaq disalurkan dalam bentuk harta untuk kebutuhan masjid dan sosial masyarakat.</li><li>Sedekah meliputi pemberian materi dan amal kebaikan harian untuk siapa saja yang membutuhkan.</li></ul>`
+    },
     {
       id: "adab-masjid",
       title: "Adab Masuk Masjid: Sunnah Kecil yang Menghadirkan Ketenangan",
@@ -288,27 +223,9 @@ export const ARTICLES = [
   ];
 
 export const CONTACT_ITEMS = [
-    {
-      label: "WhatsApp",
-      value: "+62 812-9885-0904",
-      href: "https://wa.me/6281298850904",
-      icon: "whatsapp",
-      hint: "Konfirmasi donasi & informasi kegiatan"
-    },
-    {
-      label: "Instagram",
-      value: "@jamialbarokahtangsel",
-      href: "https://www.instagram.com/jamialbarokahtangsel",
-      icon: "instagram",
-      hint: "Kabar kegiatan harian"
-    },
-    {
-      label: "Alamat masjid",
-      value: "Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315",
-      href: "https://maps.app.goo.gl/kzyHBUKtcq12koBo9",
-      icon: "pin",
-      hint: "Buka peta lokasi"
-    }
+    { label: "Pengurus Masjid", value: "+62 812-9885-0904", href: "https://wa.me/6281298850904", icon: "whatsapp" },
+    { label: "Instagram", value: "@jamialbarokahtangsel", href: "https://www.instagram.com/jamialbarokahtangsel", icon: "instagram" },
+    { label: "Alamat masjid", value: "Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315", href: "https://maps.app.goo.gl/kzyHBUKtcq12koBo9", icon: "pin", hint: "Buka peta lokasi" }
   ];
 
 export const PRAYERS = [
@@ -324,8 +241,7 @@ export const PAGE_TITLES = {
     sholat: "Jadwal Sholat — Masjid Jami' Al-Barokah",
     beranda: "Masjid Jami' Al-Barokah — Tangerang Selatan",
     donasi: "Donasi — Masjid Jami' Al-Barokah",
-    acara: "Jadwal & Acara — Masjid Jami' Al-Barokah",
-    kegiatan: "Kegiatan — Masjid Jami' Al-Barokah",
+    program: "Program — Masjid Jami' Al-Barokah",
     artikel: "Artikel & Berita — Masjid Jami' Al-Barokah",
     kontak: "Kontak — Masjid Jami' Al-Barokah"
   };
@@ -393,31 +309,41 @@ export const GALLERY = [
 ]
 
 /** Info pembayaran; diisi dari Admin > Donasi > Pembayaran (lewat Supabase). */
-export const PAYMENT = { bank: 'BSI', norek: '', pemilik: '', ewallet: '', wa: '6281298850904', auto: false, qris: [] }
+export const PAYMENT = { wa: '6281298850904', metode: [] }
 
 /** Profil masjid; ditimpa dari Admin > Profil Masjid & Kontak (lewat Supabase). */
 export const PROFILE = {
   alamat: 'Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315',
   tahun: 2021,
-  kapasitas: 250,
-  lantai: 2,
+  kapasitas: 180,
+  lantai: 3,
   fasilitas: ['Tempat wudhu', 'Toilet', 'Area parkir', 'Ruang sholat utama', 'Aula lantai 2'],
-  visi: 'Menjadi pusat ibadah, ilmu, dan kepedulian sosial yang ramah dan amanah bagi seluruh warga.',
+  visi: 'Menjadi lembaga pendidikan dan dakwah yang melahirkan generasi berakhlak mulia, cinta Al-Quran, dan bermanfaat bagi masyarakat.',
   misi: [
-    'Menyelenggarakan ibadah dan kajian yang rutin dan terbuka.',
-    'Mengelola donasi secara transparan dan akuntabel.',
-    'Membina generasi muda dan keluarga dhuafa.',
+    'Menyelenggarakan pendidikan anak usia dini Islami yang menyenangkan dan penuh kasih sayang.',
+    'Membimbing anak membaca dan menghafal Al-Quran secara bertahap dan benar.',
+    'Memakmurkan masjid sebagai pusat ibadah, kajian, dan kegiatan warga.',
+    'Menjalankan kegiatan sosial untuk membantu anak yatim dan masyarakat yang membutuhkan.'
   ],
   maps: 'https://maps.app.goo.gl/kzyHBUKtcq12koBo9',
-  lat: -6.3405,
-  lng: 106.6930,
-  hasCoords: false, // true bila pengurus mengisi latitude & longitude di Admin > Kontak
 }
 
-/** Acara yang tanggalnya belum lewat (acara hari ini masih tampil) dan belum ditandai selesai di admin. */
-export const upcomingEvents = () => {
-  const today = jakartaISO()
-  return EVENTS
-    .filter((e) => e.date >= today && e.status !== 'selesai')
-    .sort((a, b) => a.date.localeCompare(b.date))
+/** Tautan tombol "Buka di Google Maps": pakai link dari admin, kalau kosong cari lewat alamat. */
+export const mapsHref = () => PROFILE.maps
+  || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent("Masjid Jami' Al-Barokah " + PROFILE.alamat)}`
+
+/** Kelompok halaman Program; `id` cocok dengan field "Kelompok" di admin. */
+export const PROGRAM_GROUPS = [
+  { id: 'pendidikan', title: 'Pendidikan', icon: 'book' },
+  { id: 'sosial', title: 'Sosial & pemberdayaan', icon: 'heart' },
+  { id: 'dakwah', title: 'Dakwah & kajian', icon: 'mosque' },
+]
+
+/** Tautan WhatsApp untuk mendaftar ke program. Nomor program dipakai bila diisi, kalau tidak pakai nomor admin dari Kontak. */
+export function daftarLink(p) {
+  let n = String(p.wa || '').replace(/\D/g, '')
+  if (n.startsWith('0')) n = '62' + n.slice(1)
+  if (!n) n = String(CONTACT_ITEMS.find((c) => c.icon === 'whatsapp')?.href || '').replace(/\D/g, '')
+  const text = `Assalamu'alaikum, saya ingin mendaftar program ${p.title} di Masjid Jami' Al-Barokah.`
+  return `https://wa.me/${n}?text=${encodeURIComponent(text)}`
 }

@@ -1,28 +1,43 @@
 <script setup>
-import { ref, defineAsyncComponent } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { Disclosure, DisclosureButton } from '@headlessui/vue'
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
 import BrandMark from './components/BrandMark.vue'
 import HomeView from './views/HomeView.vue'
 import ProfilView from './views/ProfilView.vue'
 import DonationView from './views/DonationView.vue'
-import EventsView from './views/EventsView.vue'
-import ActivitiesView from './views/ActivitiesView.vue'
 import NewsView from './views/NewsView.vue'
-import EventDialog from './components/EventDialog.vue'
 import DonationDialog from './components/DonationDialog.vue'
 import { CONTACT_ITEMS } from './data/content'
+import { live } from './admin/db'
 import { store } from './store'
+import ProgramView from './views/ProgramView.vue'
 
 // Donasi tidak ada di NAV: di header cukup satu tombol "Donasi".
 const NAV = [
-  ['beranda', 'Beranda'], ['profil', 'Profil'], ['acara', 'Kajian & Acara'],
-  ['kegiatan', 'Kegiatan'], ['berita', 'Berita'],
+  ['beranda', 'Beranda'], ['profil', 'Profil'], ['program', 'Program'], ['berita', 'Berita'],
 ]
 const FOOTER_NAV = [...NAV, ['donasi', 'Donasi']]
-const VIEWS = { beranda: HomeView, profil: ProfilView, donasi: DonationView, acara: EventsView, kegiatan: ActivitiesView, berita: NewsView }
+const VIEWS = { beranda: HomeView, profil: ProfilView, donasi: DonationView, program: ProgramView, berita: NewsView }
 const AdminApp = defineAsyncComponent(() => import('./admin/AdminApp.vue'))
 const year = ref(new Date().getFullYear())
+
+// Footer ikut daftar kontak dari Admin > Kontak: semua WhatsApp, Instagram, email, lalu peta.
+const waText = (label) => (/pengurus/i.test(label) ? 'WhatsApp pengurus' : 'WhatsApp ' + label)
+const FOOTER_CONTACT = computed(() => {
+  live.value // hitung ulang saat admin mengubah kontak
+  const out = []
+  for (const c of CONTACT_ITEMS) if (c.icon === 'whatsapp') out.push({ text: waText(c.label), href: c.href })
+  for (const c of CONTACT_ITEMS) {
+    if (c.icon === 'instagram') out.push({ text: 'Instagram', href: c.href })
+    if (c.icon === 'tiktok') out.push({ text: 'TikTok', href: c.href })
+    if (c.icon === 'facebook') out.push({ text: 'Facebook', href: c.href })
+    if (c.icon === 'youtube') out.push({ text: 'YouTube', href: c.href })
+  }
+  const pin = CONTACT_ITEMS.find((c) => c.icon === 'pin')
+  if (pin) out.push({ text: 'Lihat lokasi di Google Maps', href: pin.href })
+  return out
+})
 </script>
 
 <template>
@@ -64,7 +79,7 @@ const year = ref(new Date().getFullYear())
             <BrandMark />
             <span class="brand-text"><span class="brand-name">Masjid Jami' Al-Barokah</span><span class="brand-sub">Tangerang Selatan</span></span>
           </div>
-          <p class="footer-desc">Rumah ibadah, majelis ilmu, dan simpul kepedulian warga. Mari bersama merawat masjid dan lingkungan.</p>
+          <p class="footer-desc">Tempat beribadah, belajar Al-Quran, membangun akhlak, dan berbagi kebaikan bersama masyarakat.</p>
         </div>
         <nav class="footer-nav" aria-label="Navigasi footer">
           <span class="footer-heading">Jelajahi</span>
@@ -72,15 +87,14 @@ const year = ref(new Date().getFullYear())
         </nav>
         <div class="footer-contact">
           <span class="footer-heading">Hubungi</span>
-          <a v-for="c in CONTACT_ITEMS" :key="c.label" :href="c.href" target="_blank" rel="noopener">{{ c.label }}: {{ c.value }}</a>
+          <a v-for="c in FOOTER_CONTACT" :key="c.text" :href="c.href" target="_blank" rel="noopener">{{ c.text }}</a>
         </div>
       </div>
       <div class="wrap footer-bottom">
-        <p>© {{ year }} Masjid Jami' Al-Barokah. <a href="#admin" @click.prevent="store.go('admin')">Admin</a></p>
+        <p>© {{ year }} Masjid Jami' Al-Barokah.</p>
       </div>
     </footer>
 
-    <EventDialog />
     <DonationDialog />
   </template>
 </template>

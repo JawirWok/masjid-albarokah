@@ -5,14 +5,14 @@ import {
   Bars3Icon, PlusIcon, PencilSquareIcon, TrashIcon, ArrowTopRightOnSquareIcon, ArrowRightOnRectangleIcon, ArrowLeftIcon,
   EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, CheckCircleIcon, ExclamationTriangleIcon, InboxIcon,
   Squares2X2Icon, BuildingLibraryIcon, ClockIcon, HeartIcon, CalendarDaysIcon, UserGroupIcon, NewspaperIcon, PhoneIcon,
-  Cog6ToothIcon, DocumentTextIcon, BanknotesIcon, UserCircleIcon, KeyIcon, ShieldCheckIcon, AtSymbolIcon,
+  Cog6ToothIcon, DocumentTextIcon, BanknotesIcon, UserCircleIcon, KeyIcon, ShieldCheckIcon, AtSymbolIcon, MagnifyingGlassIcon,
 } from '@heroicons/vue/24/outline'
 import BrandMark from '../components/BrandMark.vue'
 import './admin.css'
 import FieldGrid from './FieldGrid.vue'
 import DonutChart from './DonutChart.vue'
-import { db, supabase, loadDB, note, rp, dt, today, fetchTimes, upsert, removeRow, saveSetting, uploadImage } from './db'
-import { CFG, NAV, TABS, normalize } from './schema'
+import { db, supabase, loadDB, syncSite, note, rp, dt, today, fetchTimes, upsert, removeRow, saveSetting, uploadImage, cleanContact } from './db'
+import { CFG, NAV, TABS, KONTAK, pickKontak, normalize } from './schema'
 
 const ready = ref(false)
 const authed = ref(false)
@@ -31,21 +31,60 @@ const showPass = ref(false)
 const loginBusy = ref(false)
 const year = new Date().getFullYear()
 
-const ICON = { dashboard: Squares2X2Icon, profil: BuildingLibraryIcon, sholat: ClockIcon, donasi: HeartIcon, kajian: CalendarDaysIcon,
+const ICON = { dashboard: Squares2X2Icon, profil: BuildingLibraryIcon, sholat: ClockIcon, donasi: HeartIcon,
   kegiatan: UserGroupIcon, artikel: NewspaperIcon, kontak: PhoneIcon, akun: Cog6ToothIcon }
 const STAT_ICON = [DocumentTextIcon, UserGroupIcon, HeartIcon, BanknotesIcon]
-const GROUPS = [['Utama', ['dashboard']], ['Konten situs', ['profil', 'kajian', 'kegiatan', 'artikel', 'kontak']], ['Donasi & ibadah', ['donasi', 'sholat']], ['Sistem', ['akun']]]
+const GROUPS = [['Utama', ['dashboard']], ['Konten situs', ['profil', 'kegiatan', 'artikel', 'kontak']], ['Donasi & ibadah', ['donasi', 'sholat']], ['Sistem', ['akun']]]
 const LABEL = Object.fromEntries(NAV)
 const SUB = {
   dashboard: 'Ringkasan aktivitas masjid dan donasi.', profil: 'Informasi dasar dan galeri foto masjid.',
-  sholat: 'Lokasi dan waktu sholat yang tampil di beranda.', donasi: 'Program, pembayaran, dan riwayat donatur.',
-  kajian: 'Jadwal kajian dan acara masjid.', kegiatan: 'Kegiatan rutin beserta dokumentasinya.',
-  artikel: 'Berita dan artikel untuk jamaah.', kontak: 'Kontak dan media sosial pengurus.', akun: 'Keamanan akun admin.',
+  sholat: 'Lokasi dan waktu sholat yang tampil di beranda.', donasi: 'Program, metode pembayaran, dan riwayat donatur. Konfirmasi WhatsApp memakai kontak pertama di menu Kontak.',
+  kegiatan: 'Program, jadwal kajian, dan foto untuk halaman Program.',
+  artikel: 'Berita dan artikel untuk jamaah.', kontak: 'WhatsApp pengurus, media sosial, dan tautan peta yang tampil di beranda dan footer.', akun: 'Keamanan akun admin.',
 }
 let timer
 
+const newCat = ref('')
+const saveCats = async (list) => { db.kategori = list; await saveSetting('kategori') }
+async function addCat() {
+  const n = newCat.value.trim()
+  if (!n) return
+  if (db.kategori.some((c) => c.toLowerCase() === n.toLowerCase())) return toast('Kategori sudah ada.', true)
+  try { await saveCats([...db.kategori, n]); newCat.value = ''; toast('Kategori ditambahkan.') } catch (e) { fail(e) }
+}
+async function renameCat(old) {
+  const n = (prompt('Nama baru kategori:', old) || '').trim()
+  if (!n || n === old) return
+  if (db.kategori.some((c) => c !== old && c.toLowerCase() === n.toLowerCase())) return toast('Kategori sudah ada.', true)
+  try {
+    await saveCats(db.kategori.map((c) => (c === old ? n : c)))
+    for (const a of db.ARTICLES.filter((x) => x.category === old)) { a.category = n; await upsert('ARTICLES', a) }
+    syncSite()
+    toast('Kategori diubah, artikelnya ikut diperbarui.')
+  } catch (e) { await loadDB(); fail(e) }
+}
+async function delCat(c) {
+  const used = db.ARTICLES.filter((a) => a.category === c).length
+  if (used) return toast(`Dipakai ${used} artikel. Ubah kategori artikelnya dulu.`, true)
+  if (!confirm(`Hapus kategori "${c}"?`)) return
+  try { await saveCats(db.kategori.filter((x) => x !== c)); toast('Kategori dihapus.') } catch (e) { fail(e) }
+}
+
+const latest = computed(() => db.ARTICLES.toSorted((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 4))
+
 const cfg = computed(() => CFG[view.value === 'donasi' ? TABS[tab.value][0] : view.value])
 const rows = computed(() => (cfg.value?.key ? db[cfg.value.key] : []))
+const q = ref('')
+const filteredRows = computed(() => {
+  const s = q.value.trim().toLowerCase()
+  if (!s) return rows.value
+  const cols = cfg.value?.cols || []
+  return rows.value.filter((r) => {
+    const colText = cols.map((c) => { const v = c[1](r); return Array.isArray(v) ? v[0] : v }).join(' ')
+    const extra = [r.title, r.name, r.author, r.category, r.status, r.desc, r.nama, r.tipe, r.program, r.method].filter(Boolean).join(' ')
+    return (colText + ' ' + extra).toLowerCase().includes(s)
+  })
+})
 const clone = (o) => JSON.parse(JSON.stringify(o ?? {}))
 
 function toast(t, bad = false) {
@@ -54,7 +93,7 @@ function toast(t, bad = false) {
 }
 const fail = (e) => toast('Gagal: ' + (e?.message || 'periksa koneksi'), true)
 function go(v) { view.value = v; side.value = false }
-watch([view, tab], () => { if (cfg.value?.single) draft.value = clone(db[cfg.value.single]) })
+watch([view, tab], () => { q.value = ''; if (cfg.value?.single) draft.value = clone(db[cfg.value.single]) })
 
 let channel
 function listen() {
@@ -63,7 +102,7 @@ function listen() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'donors' }, (p) => {
       const row = p.new.data
       if (db.DONORS.some((d) => d.id === row.id)) return
-      db.DONORS.push(row); toast(`Donasi baru masuk: ${row.name} ${rp(row.amount)}`)
+      db.DONORS.push(row); toast(`Donasi baru masuk dari ${row.name}, menunggu verifikasi.`)
     }).subscribe()
 }
 onBeforeUnmount(() => channel && supabase.removeChannel(channel))
@@ -107,14 +146,17 @@ async function autoTimes() {
   try { Object.assign(d, await fetchTimes(d)); toast('Jadwal terisi. Klik Simpan untuk menerapkan.') }
   catch { toast('Gagal mengambil jadwal. Cek koneksi atau isi manual.', true) }
 }
-function openForm(i) {
-  const c = cfg.value
+const idxOf = (x) => (x == null ? null : typeof x === 'number' ? x : rows.value.indexOf(x))
+function openForm(x) {
+  const c = cfg.value, i = idxOf(x)
   dlg.value = { i, model: clone(i == null ? (c.def ? c.def() : {}) : rows.value[i]) }
 }
 async function submitForm() {
   const c = cfg.value, { i, model } = dlg.value
   const o = normalize(c.f, model); c.pre?.(o, model)
   if (c.key === 'DONORS' && !o.program) return toast('Buat program donasi dulu.', true)
+  if (c.key === 'METODE' && o.tipe === 'qris' && !o.gambar) return toast('Unggah gambar QRIS dulu.', true)
+  if (c.key === 'DONORS' && o.status === 'verified' && !(o.amount > 0)) return toast('Isi nominal dulu sebelum memverifikasi.', true)
   const prev = i == null ? null : { ...rows.value[i] }
   busy.value = true
   try {
@@ -122,23 +164,28 @@ async function submitForm() {
     await upsert(c.key, o)
     if (c.key === 'DONORS') await Promise.all(db.PROGRAMS.map((p) => upsert('PROGRAMS', p)))
     if (i == null) rows.value.push(o); else rows.value[i] = o
-    note((i == null ? 'Menambah ' : 'Mengubah ') + c.item + ': ' + (o.title || o.name))
+    if (c.key === 'ARTICLES' || c.key === 'ACTIVITIES') syncSite()
+    note((i == null ? 'Menambah ' : 'Mengubah ') + c.item + ': ' + (o.title || o.name || o.nama))
     dlg.value = null; toast('Tersimpan.')
   } catch (e) { await loadDB(); fail(e) } finally { busy.value = false }
 }
-async function remove(i) {
-  const c = cfg.value, old = rows.value[i]
+async function remove(x) {
+  const c = cfg.value, i = idxOf(x), old = rows.value[i]
+  if (i < 0 || !old) return
   if (!confirm(`Hapus ${c.item} ini? Tindakan tidak bisa dibatalkan.`)) return
   try {
     c.hook?.(old, null)
     await removeRow(c.key, old.id)
     if (c.key === 'DONORS') await Promise.all(db.PROGRAMS.map((p) => upsert('PROGRAMS', p)))
     rows.value.splice(i, 1)
-    note('Menghapus ' + c.item + ': ' + (old.title || old.name)); toast('Terhapus.')
+    if (c.key === 'ARTICLES' || c.key === 'ACTIVITIES') syncSite()
+    note('Menghapus ' + c.item + ': ' + (old.title || old.name || old.nama)); toast('Terhapus.')
   } catch (e) { await loadDB(); fail(e) }
 }
-async function verify(i) {
-  const c = cfg.value, prev = { ...rows.value[i] }, o = { ...prev, status: 'verified' }
+async function verify(x) {
+  const c = cfg.value, i = idxOf(x), prev = { ...rows.value[i] }, o = { ...prev, status: 'verified' }
+  if (i < 0) return
+  if (!(prev.amount > 0)) { openForm(i); return toast('Isi nominal sesuai mutasi dulu, lalu ubah status ke Terverifikasi.', true) }
   try {
     c.hook(prev, o)
     await upsert('DONORS', o)
@@ -147,6 +194,28 @@ async function verify(i) {
   } catch (e) { await loadDB(); fail(e) }
 }
 function quickAdd(v, t = 0) { view.value = v; tab.value = t; openForm(null) }
+
+const kdlg = ref(null) // { f, v }
+const kRows = computed(() => KONTAK.map((f) => ({ ...f, value: db.kontak?.[f.k] || '' })))
+const kShow = (f) => (f.k === 'wa' ? '+' + f.value : f.k === 'instagram' || f.k === 'tiktok' ? '@' + f.value : f.value.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, ''))
+const openKontak = (f) => { kdlg.value = { f, v: f.value } }
+async function setKontak(f, value) {
+  busy.value = true
+  try {
+    db.kontak = { ...pickKontak(db.kontak), [f.k]: value } // key lama (wa_list, email, lat, lng) ikut terbuang
+    await saveSetting('kontak')
+    syncSite()
+    note((value ? 'Mengubah kontak: ' : 'Menghapus kontak: ') + f.label)
+    kdlg.value = null; toast('Tersimpan.')
+  } catch (e) { await loadDB(); fail(e) } finally { busy.value = false }
+}
+function saveKontak() {
+  const { f, v } = kdlg.value, clean = cleanContact(f.k, v)
+  if (f.req && !clean) return toast(f.label + ' wajib diisi.', true)
+  if (f.k === 'wa' && !/^\d{10,15}$/.test(clean)) return toast('Nomor WhatsApp tidak valid. Contoh: 0812 9885 0904.', true)
+  return setKontak(f, clean)
+}
+function removeKontak(f) { if (confirm(`Hapus ${f.label} dari situs?`)) setKontak(f, '') }
 
 function applyUser(u) {
   email.value = u.email
@@ -188,6 +257,7 @@ async function savePassword() {
 }
 async function signOutAll() {
   if (!confirm('Keluar dari semua perangkat, termasuk perangkat ini?')) return
+  if (channel) { supabase.removeChannel(channel); channel = null }
   await supabase.auth.signOut({ scope: 'global' }); authed.value = false; login.value = { u: '', p: '', err: '' }
 }
 
@@ -197,14 +267,14 @@ const pendingCount = computed(() => db.DONORS.filter((d) => d.status === 'pendin
 const todayLabel = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 const stats = computed(() => [
   [db.ARTICLES.filter((a) => a.status !== 'draft').length, 'Total artikel terbit'],
-  [db.ACTIVITIES.length, 'Total kegiatan masjid'],
+  [db.ACTIVITIES.length, 'Total program masjid'],
   [db.PROGRAMS.filter((p) => p.status !== 'selesai').length, 'Program donasi aktif'],
   [rp(db.DONORS.filter((d) => d.status !== 'pending').reduce((s, d) => s + (d.amount || 0), 0)), 'Total donasi tercatat'],
 ])
-const upcoming = computed(() => db.EVENTS.filter((e) => e.status !== 'selesai' && e.date >= today()).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4))
 const perProgram = computed(() => db.PROGRAMS.map((p) => [p.name, db.DONORS.filter((d) => d.program === p.id && d.status !== 'pending').reduce((s, d) => s + (d.amount || 0), 0)]))
 
 onMounted(async () => {
+  supabase?.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT') authed.value = false })
   if (supabase) {
     const { data } = await supabase.auth.getSession()
     if (data.session) { applyUser(data.session.user); authed.value = true; await boot() }
@@ -285,9 +355,9 @@ onMounted(async () => {
               <div v-for="([n, l], i) in stats" :key="l" class="a-card a-stat"><span class="a-statico"><component :is="STAT_ICON[i]" class="size-6" /></span><div><b>{{ n }}</b><span>{{ l }}</span></div></div>
             </div>
             <div class="a-grid">
-              <div class="a-card"><h3>Kajian / acara mendatang</h3>
-                <ul v-if="upcoming.length" class="a-list"><li v-for="e in upcoming" :key="e.id"><b>{{ e.title }}</b><br><span class="muted">{{ dt(e.date) }} · {{ e.time }}</span></li></ul>
-                <p v-else class="muted">Belum ada acara mendatang.</p></div>
+              <div class="a-card"><h3>Artikel terbaru</h3>
+                <ul v-if="latest.length" class="a-list"><li v-for="a in latest" :key="a.id"><b>{{ a.title }}</b><br><span class="muted">{{ dt(a.date) }} · {{ a.category }}</span></li></ul>
+                <p v-else class="muted">Belum ada artikel.</p></div>
               <div class="a-card"><h3>Donasi terverifikasi per program</h3>
                 <DonutChart :key="perProgram.length + rp(stats[3][0])" :labels="perProgram.map((x) => x[0])" :data="perProgram.map((x) => x[1])" /></div>
               <div class="a-card" style="grid-column:1/-1"><h3>Aktivitas terbaru</h3>
@@ -354,6 +424,29 @@ onMounted(async () => {
             </div>
           </template>
 
+          <!-- Kontak -->
+          <template v-else-if="view === 'kontak'">
+            <div class="a-pagehead"><div><h2>{{ pageTitle }}</h2><p>{{ SUB.kontak }}</p></div></div>
+            <div class="a-card a-tw">
+              <table>
+                <thead><tr><th>Kanal</th><th>Isi</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  <tr v-for="f in kRows" :key="f.k">
+                    <td><b>{{ f.label }}</b><br><span class="muted">{{ f.sub }}</span></td>
+                    <td>{{ f.value ? kShow(f) : '—' }}</td>
+                    <td><span class="a-badge" :class="{ w: !f.value }">{{ f.value ? 'Tampil' : (f.req ? 'Wajib diisi' : 'Tidak ditampilkan') }}</span></td>
+                    <td class="a-act">
+                      <button type="button" class="a-btn a-btn-sm" :aria-label="(f.value ? 'Ubah ' : 'Isi ') + f.label" @click="openKontak(f)">
+                        <PencilSquareIcon class="size-4" /> {{ f.value ? 'Ubah' : 'Isi' }}
+                      </button>
+                      <button v-if="f.value && !f.req" type="button" class="a-btn a-btn-sm a-btn-d" :aria-label="'Hapus ' + f.label" @click="removeKontak(f)"><TrashIcon class="size-4" /></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+
           <!-- Modul data (daftar / form tunggal) -->
           <template v-else>
             <div class="a-pagehead">
@@ -364,11 +457,27 @@ onMounted(async () => {
             <TabGroup v-if="view === 'donasi'" :selected-index="tab" @change="tab = $event">
               <TabList class="a-tabs"><Tab v-for="[k, l] in TABS" :key="k" v-slot="{ selected }" as="template"><button type="button" :class="{ on: selected }">{{ l }}</button></Tab></TabList>
             </TabGroup>
+            
+            <div v-if="view === 'artikel'" class="a-card" style="margin-bottom:16px">
+              <h3>Kategori artikel</h3>
+              <ul class="flex flex-wrap gap-2" style="list-style:none;padding:0;margin:0 0 14px">
+                <li v-for="c in db.kategori" :key="c" class="a-badge" style="display:inline-flex;align-items:center;gap:6px">
+                  {{ c }}
+                  <button type="button" aria-label="Ubah kategori" @click="renameCat(c)"><PencilSquareIcon class="size-4" /></button>
+                  <button type="button" aria-label="Hapus kategori" @click="delCat(c)"><TrashIcon class="size-4" /></button>
+                </li>
+              </ul>
+              <form class="flex gap-2" @submit.prevent="addCat">
+                <input v-model="newCat" maxlength="30" placeholder="Kategori baru" aria-label="Kategori baru">
+                <button class="a-btn a-btn-p" type="submit"><PlusIcon class="size-4" /> Tambah</button>
+              </form>
+            </div>
 
             <template v-if="cfg.single">
               <form :key="cfg.single" class="a-card" @submit.prevent="saveSingle">
                 <h3>{{ cfg.t }}</h3>
                 <FieldGrid :fields="cfg.f" :model="draft" />
+                <p v-if="cfg.note" class="muted" style="margin:12px 0 0;font-size:13px">{{ cfg.note }}</p>
                 <div class="a-foot">
                   <button v-if="cfg.tools" type="button" class="a-btn" @click="autoTimes">Ambil jadwal otomatis</button>
                   <button class="a-btn a-btn-p" type="submit" :disabled="busy">{{ busy ? 'Menyimpan…' : 'Simpan perubahan' }}</button>
@@ -377,23 +486,37 @@ onMounted(async () => {
             </template>
 
             <div v-else class="a-card a-tw">
-              <table v-if="rows.length">
+              <search v-if="rows.length" class="a-search" :aria-label="'Cari ' + cfg.item">
+                <div class="a-search-box">
+                  <label for="adm-search" class="sr-only">Cari {{ cfg.item }}</label>
+                  <MagnifyingGlassIcon aria-hidden="true" />
+                  <input id="adm-search" v-model="q" type="search" autocorrect="off" autocapitalize="none" spellcheck="false"
+                         :placeholder="'Cari ' + cfg.item + '…'">
+                </div>
+                <span v-if="q.trim()" class="a-search-count" role="status">{{ filteredRows.length }} dari {{ rows.length }}</span>
+              </search>
+              <table v-if="filteredRows.length">
                 <thead><tr><th v-for="c in cfg.cols" :key="c[0]">{{ c[0] }}</th><th></th></tr></thead>
-                <tbody><tr v-for="(r, i) in rows" :key="r.id || i">
+                <tbody><tr v-for="(r, i) in filteredRows" :key="r.id || i">
                   <td v-for="c in cfg.cols" :key="c[0]">
                     <span v-if="c[2] === 'badge'" class="a-badge" :class="{ w: c[1](r)[1] }">{{ c[1](r)[0] }}</span>
                     <template v-else>{{ c[1](r) }}</template>
                   </td>
                   <td class="a-act">
-                    <button v-if="cfg.key === 'DONORS' && r.status === 'pending'" class="a-btn a-btn-sm a-btn-p" @click="verify(i)">Verifikasi</button>
-                    <button class="a-btn a-btn-sm" aria-label="Ubah" @click="openForm(i)"><PencilSquareIcon class="size-4" /></button>
-                    <button class="a-btn a-btn-sm a-btn-d" aria-label="Hapus" @click="remove(i)"><TrashIcon class="size-4" /></button>
+                    <button v-if="cfg.key === 'DONORS' && r.status === 'pending'" type="button" class="a-btn a-btn-sm a-btn-p" @click="verify(r)">Verifikasi</button>
+                    <button type="button" class="a-btn a-btn-sm" :aria-label="'Ubah ' + (r.title || r.name || r.nama || cfg.item)" @click="openForm(r)"><PencilSquareIcon class="size-4" /></button>
+                    <button type="button" class="a-btn a-btn-sm a-btn-d" :aria-label="'Hapus ' + (r.title || r.name || r.nama || cfg.item)" @click="remove(r)"><TrashIcon class="size-4" /></button>
                   </td>
                 </tr></tbody>
               </table>
+              <div v-else-if="rows.length" class="a-empty">
+                <MagnifyingGlassIcon class="size-10" /><b style="color:var(--ink)">Tidak ada yang cocok</b>
+                <span>Tidak ada {{ cfg.item }} untuk kata kunci "{{ q.trim() }}".</span>
+                <button type="button" class="a-btn" @click="q = ''">Reset pencarian</button>
+              </div>
               <div v-else class="a-empty">
                 <InboxIcon class="size-10" /><b style="color:var(--ink)">Belum ada data</b><span>Mulai dengan menambahkan {{ cfg.item }} pertama.</span>
-                <button class="a-btn a-btn-p" @click="openForm(null)"><PlusIcon class="size-4" /> Tambah {{ cfg.item }}</button>
+                <button type="button" class="a-btn a-btn-p" @click="openForm(null)"><PlusIcon class="size-4" /> Tambah {{ cfg.item }}</button>
               </div>
             </div>
           </template>
@@ -412,6 +535,26 @@ onMounted(async () => {
           <h3>{{ dlg.i == null ? 'Tambah' : 'Ubah' }} {{ cfg.item }}</h3>
           <FieldGrid :fields="cfg.f" :model="dlg.model" />
           <div class="a-foot"><button type="button" class="a-btn" @click="dlg = null">Batal</button><button class="a-btn a-btn-p" type="submit" :disabled="busy">{{ busy ? 'Menyimpan…' : 'Simpan' }}</button></div>
+        </form>
+      </DialogPanel>
+    </div>
+  </Dialog>
+
+  <Dialog :open="!!kdlg" class="adm relative z-50" @close="kdlg = null">
+    <div class="fixed inset-0 bg-ink/60" aria-hidden="true" />
+    <div class="fixed inset-0 overflow-y-auto p-3 grid place-items-start sm:place-items-center">
+      <DialogPanel v-if="kdlg" class="a-card a-dlg w-full max-w-lg">
+        <form @submit.prevent="saveKontak">
+          <h3>{{ kdlg.f.label }}</h3>
+          <div class="fld">
+            <label for="k-val">{{ kdlg.f.field }}</label>
+            <input id="k-val" v-model="kdlg.v" :type="kdlg.f.k === 'wa' ? 'tel' : 'text'" :required="!!kdlg.f.req" :placeholder="kdlg.f.ph">
+            <small>{{ kdlg.f.h }}</small>
+          </div>
+          <div class="a-foot">
+            <button type="button" class="a-btn" @click="kdlg = null">Batal</button>
+            <button class="a-btn a-btn-p" type="submit" :disabled="busy">{{ busy ? 'Menyimpan…' : 'Simpan' }}</button>
+          </div>
         </form>
       </DialogPanel>
     </div>

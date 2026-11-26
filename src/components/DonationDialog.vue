@@ -1,43 +1,83 @@
 <script setup>
 import { reactive, computed, watch, ref } from 'vue'
-import { CheckCircleIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
+import { CheckCircleIcon, DocumentDuplicateIcon, CheckIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 import BaseDialog from './BaseDialog.vue'
-import { PROGRAMS, PAYMENT, rupiah, longDate } from '../data/content'
+import { PROGRAMS, PAYMENT } from '../data/content'
 import { supabase, submitDonation, refreshDonations } from '../admin/db'
-import { downloadReceipt } from '../utils/receipt'
 import { store } from '../store'
 
-const METHODS = ['BSI', 'QRIS', 'E-wallet', 'Tunai', 'Lainnya']
-const QRIS = [['Yayasan Jami Al Barokah', '/assets/qris-yayasan.jpg'], ['Sahabat Baik Al Barokah', '/assets/qris-sahabat.jpg'], ['Al Barokah Infaq', '/assets/qris-infaq.jpg']]
-const qrisList = computed(() => (PAYMENT.qris?.length ? PAYMENT.qris.map((g) => [g.alt || 'QRIS', g.src]) : QRIS))
-const form = reactive({ name: '', amount: '', program: 'umum', method: 'BSI', anon: false })
-const errors = reactive({ name: '', amount: '' })
+const copied = ref(false)
+let copyTimer
+async function copyNo() {
+  const text = String(chosen.value.nomor || '').replace(/\D/g, '') // angka saja, tanpa spasi/strip
+  try { await navigator.clipboard.writeText(text) }
+  catch {
+    const t = document.createElement('textarea')
+    t.value = text; t.style.cssText = 'position:fixed;opacity:0'
+    document.body.appendChild(t); t.select()
+    try { document.execCommand('copy') } catch { /* diabaikan */ }
+    t.remove()
+  }
+  copied.value = true
+  clearTimeout(copyTimer); copyTimer = setTimeout(() => (copied.value = false), 2000)
+}
+
+async function saveQris() {
+  const src = chosen.value.gambar?.src
+  if (!src) return
+  const file = `QRIS-${String(chosen.value.nama || 'masjid').replace(/[^\w-]+/g, '-')}.jpg`
+  try {
+    const blob = await (await fetch(src)).blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob); a.download = file
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+  } catch { window.open(src, '_blank', 'noopener') } // fallback bila diblokir
+}
+
+const ANON = 'Hamba Allah'
+
+// Metode pembayaran mengikuti Admin > Donasi > Pembayaran: yang kosong tidak ditampilkan.
+const methods = ref([])
+const buildMethods = () => PAYMENT.metode.map((m) => ({ ...m, label: m.tipe === 'bank' ? 'Transfer ' + m.nama : m.nama }))
+const chosen = ref(null)
+
+const form = reactive({ name: '', method: '', anon: false })
+const errors = reactive({ name: '' })
 const step = ref('form') // form | pay | sending | done
 const draft = ref(null)
-const receipt = ref(null)
 const failed = ref('')
 const open = computed(() => store.donationProgram !== null)
 
-watch(() => store.donationProgram, (id) => {
-  if (id === null) return
-  Object.assign(form, { name: '', amount: '', program: id || PROGRAMS[0]?.id || 'umum', method: 'BSI', anon: false })
-  Object.assign(errors, { name: '', amount: '' })
-  step.value = 'form'; failed.value = ''; draft.value = null; receipt.value = null
+// Program mengikuti kartu yang ditekan, tidak bisa diganti di dalam form.
+const program = computed(() => PROGRAMS.find((p) => p.id === store.donationProgram) || PROGRAMS[0] || null)
+
+let savedName = ''
+watch(() => form.anon, (on) => {
+  if (on) { savedName = form.name === ANON ? '' : form.name; form.name = ANON; errors.name = '' }
+  else form.name = savedName
 })
 
-const programName = (id) => PROGRAMS.find((p) => p.id === id)?.name || id
+watch(() => store.donationProgram, (id) => {
+  if (id === null) return
+  methods.value = buildMethods()
+  savedName = ''
+  Object.assign(form, { name: '', method: methods.value[0]?.id || '', anon: false })
+  errors.name = ''
+  step.value = 'form'; failed.value = ''; draft.value = null
+})
+
+const adminWa = () => `https://wa.me/${PAYMENT.wa}`
 const waLink = (d) => `https://wa.me/${PAYMENT.wa}?text=${encodeURIComponent(
-  `Assalamu'alaikum, saya ${d.name} sudah donasi ${rupiah(d.amount)} untuk program ${programName(d.program)} (${d.method}). No. bukti: ${d.id.replace('donasi-', '').toUpperCase()}.`)}`
+  `Assalamu'alaikum, saya ${d.name} sudah melakukan donasi untuk program ${program.value?.name || ''} via ${d.method}. Mohon dicek ya, terima kasih.`)}`
 
 function toPayment() {
-  errors.name = form.name.trim().length < 3 ? 'Isi nama minimal 3 karakter.' : ''
-  const amount = Number(form.amount)
-  errors.amount = !(amount >= 10000 && amount <= 100000000) ? 'Nominal antara Rp10.000 dan Rp100.000.000.' : ''
-  if (errors.name) return document.getElementById('donorName')?.focus()
-  if (errors.amount) return document.getElementById('donorAmount')?.focus()
+  if (!form.anon && form.name.trim().length < 3) { errors.name = 'Isi nama minimal 3 karakter.'; return document.getElementById('donorName')?.focus() }
+  errors.name = ''
+  chosen.value = methods.value.find((m) => m.id === form.method)
   draft.value = {
     id: `donasi-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-    name: form.name.trim(), program: form.program, amount, method: form.method, anon: form.anon,
+    name: form.anon ? ANON : form.name.trim(), program: program.value.id, amount: 0, method: chosen.value.label, anon: form.anon,
   }
   failed.value = ''; step.value = 'pay'
 }
@@ -46,17 +86,17 @@ async function paid() {
   if (!supabase) { window.open(waLink(draft.value), '_blank', 'noopener'); store.donationProgram = null; return }
   step.value = 'sending'; failed.value = ''
   try {
-    receipt.value = await submitDonation(draft.value)
-    await refreshDonations().catch(() => {}) // angka di situs langsung diperbarui
+    await submitDonation(draft.value)
+    await refreshDonations().catch(() => {})
     step.value = 'done'
   } catch (e) {
     step.value = 'pay'
-    failed.value = /terlalu banyak/.test(e.message) ? e.message : 'Donasi belum tercatat di sistem. Coba lagi, atau konfirmasi lewat WhatsApp.'
+    failed.value = /terlalu banyak/.test(e.message) ? e.message : 'Konfirmasi belum tercatat di sistem. Coba lagi, atau kabari pengurus lewat WhatsApp.'
   }
 }
 
 const stepIdx = computed(() => ({ form: 0, pay: 1, sending: 1, done: 2 }[step.value]))
-const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', sending: 'Mencatat donasi…', done: 'Donasi Anda tercatat' }[step.value]))
+const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', sending: 'Mencatat konfirmasi…', done: 'Konfirmasi diterima' }[step.value]))
 </script>
 
 <template>
@@ -70,52 +110,52 @@ const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', se
 
     <!-- 1. Isi data -->
     <form v-if="step === 'form'" novalidate @submit.prevent="toPayment">
+      <p v-if="program" class="mb-4 text-sm">Donasi untuk <b>{{ program.name }}</b></p>
+
       <div class="field" :class="{ 'has-error': errors.name }">
         <label for="donorName">Nama</label>
-        <input id="donorName" v-model="form.name" type="text" autocomplete="name" maxlength="80" placeholder="Nama lengkap" @input="errors.name = ''">
+        <input id="donorName" v-model="form.name" type="text" autocomplete="name" maxlength="80" placeholder="Nama lengkap" :disabled="form.anon" @input="errors.name = ''">
         <p class="err" role="alert">{{ errors.name }}</p>
       </div>
-      <div class="field"><label class="flex items-center gap-2 font-medium" style="flex-direction:row"><input v-model="form.anon" type="checkbox" style="width:18px;height:18px;padding:0;flex:none"> Tampilkan sebagai “Hamba Allah” di daftar donatur</label></div>
-      <div class="field">
-        <label for="donorProgram">Program</label>
-        <select id="donorProgram" v-model="form.program"><option v-for="p in PROGRAMS" :key="p.id" :value="p.id">{{ p.name }}</option></select>
+      <div class="field"><label class="flex items-center gap-2 font-medium" style="flex-direction:row"><input v-model="form.anon" type="checkbox" style="width:18px;height:18px;padding:0;flex:none"> Donasi sebagai “Hamba Allah”</label></div>
+
+      <template v-if="methods.length">
+        <div class="field">
+          <label for="donorMethod">Metode pembayaran</label>
+          <select id="donorMethod" v-model="form.method"><option v-for="m in methods" :key="m.id" :value="m.id">{{ m.label }}</option></select>
+        </div>
+        <button type="submit" class="btn btn-primary">Lanjut ke pembayaran</button>
+      </template>
+      <div v-else class="rounded-xl bg-brand-50 p-4 text-sm">
+        <p class="mb-3">Metode pembayaran belum tersedia. Silakan hubungi pengurus untuk berdonasi.</p>
+        <a class="btn btn-primary btn-sm" :href="adminWa()" target="_blank" rel="noopener">Hubungi pengurus (WhatsApp)</a>
       </div>
-      <div class="field">
-        <label for="donorMethod">Metode pembayaran</label>
-        <select id="donorMethod" v-model="form.method"><option v-for="m in METHODS" :key="m" :value="m">{{ m }}</option></select>
-      </div>
-      <div class="field" :class="{ 'has-error': errors.amount }">
-        <label for="donorAmount">Nominal (Rp)</label>
-        <input id="donorAmount" v-model="form.amount" type="number" min="10000" step="1000" inputmode="numeric" placeholder="100000" @input="errors.amount = ''">
-        <p class="err" role="alert">{{ errors.amount }}</p>
-      </div>
-      <button type="submit" class="btn btn-primary">Lanjut ke pembayaran</button>
     </form>
 
     <!-- 2. Pembayaran -->
     <div v-else-if="step === 'pay' || step === 'sending'">
-      <p class="mb-4">Donasi <b>{{ rupiah(draft.amount) }}</b> untuk <b>{{ programName(draft.program) }}</b> via <b>{{ draft.method }}</b>.</p>
+      <p class="mb-4">Donasi untuk <b>{{ program?.name }}</b> via <b>{{ draft.method }}</b>.</p>
 
       <div class="rounded-xl bg-brand-50 p-4 mb-4 text-sm">
-        <template v-if="draft.method === 'BSI'">
-          <p class="font-semibold mb-1">Transfer ke rekening {{ PAYMENT.bank || 'BSI' }}</p>
-          <p v-if="PAYMENT.norek" class="text-lg font-bold">{{ PAYMENT.norek }}</p>
-          <p v-else>Nomor rekening belum diisi pengurus (Admin &gt; Donasi &gt; Pembayaran).</p>
-          <p v-if="PAYMENT.pemilik">a.n. {{ PAYMENT.pemilik }}</p>
+        <template v-if="chosen.tipe === 'qris'">
+          <p class="font-semibold mb-2">Scan {{ chosen.nama }}</p>
+          <img :src="chosen.gambar?.src" :alt="chosen.nama" class="w-full max-w-xs mx-auto rounded-lg bg-white" loading="lazy">
+          <button type="button" class="btn btn-secondary btn-sm mt-3" @click="saveQris">
+            <ArrowDownTrayIcon class="size-4" /> Unduh QRIS
+          </button>
         </template>
-        <template v-else-if="draft.method === 'QRIS'">
-          <p class="font-semibold mb-2">Scan salah satu QRIS</p>
-          <div class="grid grid-cols-3 gap-2">
-            <figure v-for="[n, src] in qrisList" :key="src"><img :src="src" :alt="'QRIS ' + n" class="w-full rounded-lg bg-white" loading="lazy"><figcaption class="text-xs mt-1">{{ n }}</figcaption></figure>
-          </div>
+        <template v-else>
+          <p class="font-semibold mb-1">{{ chosen.tipe === 'bank' ? 'Transfer ke rekening ' : 'Kirim ke ' }}{{ chosen.nama }}</p>
+          <p class="text-lg font-bold">{{ chosen.nomor }}</p>
+          <p v-if="chosen.pemilik">a.n. {{ chosen.pemilik }}</p>
+          <button type="button" class="btn btn-secondary btn-sm mt-3" @click="copyNo">
+            <CheckIcon v-if="copied" class="size-4" /><DocumentDuplicateIcon v-else class="size-4" />
+            {{ copied ? 'Tersalin' : (chosen.tipe === 'bank' ? 'Salin nomor rekening' : 'Salin nomor') }}
+          </button>
         </template>
-        <template v-else-if="draft.method === 'E-wallet'">
-          <p class="font-semibold mb-1">E-wallet</p><p>{{ PAYMENT.ewallet || 'Hubungi admin via WhatsApp untuk nomor e-wallet.' }}</p>
-        </template>
-        <p v-else>Hubungi admin pengurus via WhatsApp untuk menyerahkan donasi.</p>
       </div>
 
-      <p v-if="PAYMENT.auto" class="text-xs mb-3 text-[#5f736d]">Mode demo: pembayaran tidak diperiksa, donasi langsung dicatat.</p>
+      <p class="text-xs mb-3 text-[#5f736d]">Setelah membayar, tekan “Saya sudah bayar”. Pengurus akan mengecek pembayaran Anda.</p>
       <p v-if="failed" class="mb-3 text-sm text-red-700" role="alert">{{ failed }}</p>
       <div class="flex gap-3 flex-wrap">
         <button type="button" class="btn btn-secondary" :disabled="step === 'sending'" @click="step = 'form'">Kembali</button>
@@ -123,28 +163,16 @@ const title = computed(() => ({ form: 'Donasi', pay: 'Selesaikan pembayaran', se
       </div>
     </div>
 
-    <!-- 3. Bukti donasi -->
+    <!-- 3. Selesai -->
     <div v-else-if="step === 'done'">
-      <div class="text-center mb-4">
+      <div class="text-center mb-5">
         <CheckCircleIcon class="size-14 mx-auto text-brand-700" />
-        <p class="mt-2">
-          <template v-if="receipt.status === 'verified'">Terima kasih! Donasi Anda sudah terverifikasi dan total program ikut bertambah.</template>
-          <template v-else>Terima kasih! Donasi Anda menunggu verifikasi pengurus. Total program bertambah setelah itu.</template>
-        </p>
+        <p class="mt-2">Terima kasih! Konfirmasi Anda sudah kami terima dan sedang dicek oleh pengurus.</p>
       </div>
-      <dl class="rounded-xl border border-[#dce8e2] p-4 text-sm grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 mb-5">
-        <dt class="text-[#5f736d]">No. bukti</dt><dd class="font-semibold text-right">{{ receipt.id.replace('donasi-', '').toUpperCase() }}</dd>
-        <dt class="text-[#5f736d]">Tanggal</dt><dd class="font-semibold text-right">{{ longDate(receipt.date) }}</dd>
-        <dt class="text-[#5f736d]">Nama</dt><dd class="font-semibold text-right">{{ receipt.name }}</dd>
-        <dt class="text-[#5f736d]">Program</dt><dd class="font-semibold text-right">{{ programName(receipt.program) }}</dd>
-        <dt class="text-[#5f736d]">Metode</dt><dd class="font-semibold text-right">{{ receipt.method }}</dd>
-        <dt class="text-[#5f736d]">Nominal</dt><dd class="font-bold text-right">{{ rupiah(receipt.amount) }}</dd>
-        <dt class="text-[#5f736d]">Status</dt><dd class="font-semibold text-right">{{ receipt.status === 'verified' ? 'Terverifikasi' : 'Menunggu verifikasi' }}</dd>
-      </dl>
-      <div class="flex gap-3 flex-wrap">
-        <button type="button" class="btn btn-primary" @click="downloadReceipt(receipt, programName(receipt.program))"><ArrowDownTrayIcon class="size-4 inline" /> Unduh bukti (PNG)</button>
-        <a class="btn btn-secondary" :href="waLink(receipt)" target="_blank" rel="noopener">Kirim ke admin (WhatsApp)</a>
-        <button type="button" class="btn btn-secondary" @click="store.donationProgram = null">Tutup</button>
+      <p class="text-sm text-[#5f736d] mb-5 text-center">Ingin mempercepat? Anda bisa mengabari pengurus lewat WhatsApp (opsional).</p>
+      <div class="flex gap-3 flex-wrap justify-center">
+        <a class="btn btn-secondary" :href="waLink(draft)" target="_blank" rel="noopener">Kirim ke admin (WhatsApp)</a>
+        <button type="button" class="btn btn-primary" @click="store.donationProgram = null">Tutup</button>
       </div>
     </div>
   </BaseDialog>

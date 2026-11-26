@@ -4,7 +4,7 @@ Stack: Vue 3, Vite, Tailwind CSS 4, Headless UI, Heroicons, Chart.js, Leaflet, S
 
 ## 1. Siapkan Supabase
 1. Buat project di https://supabase.com.
-2. SQL Editor: jalankan `supabase/schema.sql`, `supabase/seed.sql` (data awal), lalu `supabase/donasi-publik.sql` (donasi dari pengunjung + realtime) `supabase/media.sql` (penyimpanan gambar), `supabase/hardening.sql` (aturan lebih ketat + batas ukuran gambar), lalu `supabase/donasi-otomatis.sql` (donasi lewat fungsi database + MODE DEMO).
+2. SQL Editor: jalankan `supabase/schema.sql`, `supabase/seed.sql` (data awal), lalu `supabase/donasi-publik.sql` (donasi dari pengunjung + realtime) `supabase/media.sql` (penyimpanan gambar), `supabase/hardening.sql` (aturan lebih ketat + batas ukuran gambar), lalu `supabase/donasi-otomatis.sql` dan `supabase/donasi-konfirmasi.sql` (donasi lewat fungsi database, selalu menunggu verifikasi).
 3. Authentication > Users > **Add user**: isi email + password admin (centang Auto Confirm).
 4. Authentication > Sign In / Providers > **matikan "Allow new users to sign up"** (agar hanya Anda yang bisa jadi admin).
 5. Project Settings > API: salin **Project URL** dan **anon public key**.
@@ -26,13 +26,8 @@ Push ke GitHub, import di Vercel (framework: Vite). Di Settings > Environment Va
 - Jangan pernah memakai `service_role` key di kode front end.
 
 ## Alur donasi
-Pengunjung transfer/QRIS, mengisi form di situs, donasi tercatat berstatus *menunggu verifikasi* di Supabase.
-Pengurus membuka Admin > Donasi > Donatur dan menekan **Verifikasi** setelah mencocokkan mutasi rekening;
-saat itu total program bertambah dan angka di situs ikut berubah otomatis (realtime).
-Batas spam: maksimal 300 donasi pending sekaligus (lihat `donasi-publik.sql`).
-
-## Mode demo vs produksi
-`donasi-otomatis.sql` menyalakan MODE DEMO: donasi langsung terverifikasi dan total program naik otomatis.
-Sebelum dipakai sungguhan, matikan di Admin > Donasi > Pembayaran (hapus centang mode demo). Setelah itu donasi
-berstatus *menunggu verifikasi* sampai pengurus menekan Verifikasi. Ada batas 200 donasi/jam (seluruh situs)
-dan 20 donasi/jam per alamat IP.
+Pengunjung memilih program, membayar lewat metode yang diaktifkan di Admin > Donasi > Pembayaran (kolom kosong =
+metode tidak tampil), lalu menekan **Saya sudah bayar**. Konfirmasi tercatat berstatus *menunggu verifikasi*.
+Pengurus membuka Admin > Donasi > Donatur, mencocokkan mutasi, mengisi **Nominal**, lalu menekan **Verifikasi**;
+saat itu total program bertambah dan angka di situs ikut berubah otomatis. Mengabari admin lewat WhatsApp bersifat opsional.
+Ada batas 200 konfirmasi/jam (seluruh situs) dan 20/jam per alamat IP.

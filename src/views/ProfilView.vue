@@ -2,10 +2,12 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { ChevronLeftIcon, ChevronRightIcon, XMarkIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
-import { GALLERY, PROFILE } from '../data/content'
 import { store } from '../store'
+import BackHome from '../components/BackHome.vue'
+import { GALLERY, PROFILE, mapsHref } from '../data/content'
 
-const HERO = 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1800&q=85'
+const mapSrc = computed(() => `https://maps.google.com/maps?q=${encodeURIComponent(`Masjid Jami' Al-Barokah ${PROFILE.alamat}`)}&z=17&output=embed`)
+
 const FALLBACK = '/assets/stock/masjid-hero.jpg'
 const onErr = (e) => { e.target.onerror = null; e.target.src = FALLBACK }
 
@@ -19,10 +21,6 @@ const go = (i) => { idx.value = wrap(i) }
 const openLb = (i) => { lbIdx.value = wrap(i); lb.value = true }
 
 // Peta: koordinat dari Admin > Kontak bila ada, kalau tidak Google mencari lewat nama + alamat
-const mapSrc = computed(() => {
-  const q = PROFILE.hasCoords ? `${PROFILE.lat},${PROFILE.lng}` : `Masjid Jami' Al-Barokah ${PROFILE.alamat}`
-  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=17&output=embed`
-})
 
 // geser (swipe) di HP
 let sx = 0, sy = 0, swiped = false
@@ -38,7 +36,7 @@ const onKey = (e) => {
   const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
   if (!d) return
   if (lb.value) lbIdx.value = wrap(lbIdx.value + d)
-  else if (store.donationProgram === null && store.eventId === null) go(idx.value + d)
+  else if (store.donationProgram === null) go(idx.value + d)
 }
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
@@ -48,12 +46,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
   <div class="pf">
     <!-- Hero -->
     <section class="pf-hero">
-      <img :src="HERO" alt="Arsitektur Masjid Jami' Al-Barokah" class="pf-hero-img" @error="onErr">
-      <div class="pf-hero-shade" aria-hidden="true"></div>
       <div class="pf-wrap pf-hero-body">
-        <p class="pf-eyebrow pf-eyebrow-light">PROFIL MASJID</p>
-        <h1 class="pf-title">Masjid Jami' Al-Barokah</h1>
-        <p class="pf-lead">Mengenal sejarah, ukuran, kapasitas, dan fasilitas masjid kami.</p>
+        <BackHome />
+        <h1 class="pf-title">Profil Masjid Jami' Al-Barokah</h1>
+        <p class="pf-lead">Gambaran mengenai fasilitas, visi, dan lingkungan Masjid Jami' Al-Barokah.</p>
       </div>
     </section>
 
@@ -128,7 +124,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
                 <h2 id="pf-loc-h" class="pf-h2">Alamat Masjid</h2>
                 <p class="pf-addr">{{ PROFILE.alamat }}</p>
               </div>
-              <a class="pf-btn-outline" :href="PROFILE.maps" target="_blank" rel="noopener noreferrer"><span>Buka di Google Maps</span><ArrowTopRightOnSquareIcon /></a>
+              <a class="pf-btn-outline" :href="mapsHref()" target="_blank" rel="noopener noreferrer"><span>Buka di Google Maps</span><ArrowTopRightOnSquareIcon /></a>
             </div>
             <div class="pf-map"><iframe title="Peta lokasi Masjid Jami' Al-Barokah" :src="mapSrc" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
           </div>
@@ -169,9 +165,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .pf .pf-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 
 /* hero */
-.pf .pf-hero{position:relative;overflow:hidden;background:#063B2C}
-.pf .pf-hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
-.pf .pf-hero-shade{position:absolute;inset:0;background:linear-gradient(135deg,rgba(6,59,44,.84) 0%,rgba(11,79,59,.76) 55%,rgba(6,59,44,.86) 100%)}
+.pf .pf-hero{position:relative;overflow:hidden;background:linear-gradient(100deg,rgba(6,46,39,.97) 0%,rgba(6,46,39,.88) 55%,rgba(6,46,39,.62) 100%),url("/assets/donasi-hero.jpg") center/cover no-repeat,#062e27}
+.pf .pf-hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cpath d='M44 6l8.5 22.5L75 38l-22.5 8.5L44 69l-8.5-22.5L13 38l22.5-9.5z' fill='none' stroke='%23a8d6c6' stroke-width='1'/%3E%3C/svg%3E")}
 .pf .pf-hero-body{position:relative;z-index:10;padding-top:64px;padding-bottom:80px}
 .pf .pf-eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .pf .pf-eyebrow-light{color:#a7f3d0;letter-spacing:.1em;font-weight:600}
@@ -247,7 +242,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 }
 @media(min-width:1024px){
   .pf .pf-title{font-size:48px}
-  .pf .pf-vm{grid-template-columns:5fr 7fr}
   .pf .pf-loc{grid-template-columns:5fr 7fr;gap:32px}
 }
 
@@ -268,4 +262,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .pf-lb-root .pf-lb-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;color:#fff}
 .pf-lb-root .pf-lb-foot h3{margin:0;font-size:16px;font-weight:600}
 .pf-lb-root .pf-lb-foot span{flex:none;font-size:13px;color:rgba(167,243,208,.9);font-weight:500}
+
+/* font judul sama seperti halaman lain (Marcellus) */
+.pf .pf-title,.pf .pf-h2,.pf .pf-quote,.pf .pf-statvalue,.pf .pf-caption h3{font-family:var(--font-display);font-weight:400}
+.pf-lb-root .pf-lb-foot h3{font-family:var(--font-display);font-weight:400}
 </style>

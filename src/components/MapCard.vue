@@ -1,13 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { ArrowUpRightIcon } from '@heroicons/vue/24/outline'
-import { PROFILE } from '../data/content'
+import { PROFILE, mapsHref } from '../data/content'
 
-// Pakai koordinat dari Admin > Kontak bila diisi; kalau belum, Google mencari lewat nama + alamat masjid.
-const src = computed(() => {
-  const q = PROFILE.hasCoords ? `${PROFILE.lat},${PROFILE.lng}` : `Masjid Jami' Al-Barokah ${PROFILE.alamat}`
-  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=16&output=embed`
-})
+const src = computed(() => `https://maps.google.com/maps?q=${encodeURIComponent(`Masjid Jami' Al-Barokah ${PROFILE.alamat}`)}&z=16&output=embed`)
 // "Jl. X, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten" -> "Babakan, Kec. Setu, Tangerang Selatan"
 const area = computed(() => {
   const parts = PROFILE.alamat.split(',').map((s) => s.trim()).filter(Boolean)
@@ -25,7 +21,7 @@ const area = computed(() => {
         <span class="map-label">Titik lokasi</span>
         <strong>{{ area }}</strong>
       </div>
-      <a class="btn btn-primary btn-sm" :href="PROFILE.maps" target="_blank" rel="noopener">
+      <a class="btn btn-primary btn-sm" :href="mapsHref()" target="_blank" rel="noopener">
         Buka di Google Maps <ArrowUpRightIcon class="size-4" />
       </a>
     </div>

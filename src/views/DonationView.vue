@@ -4,13 +4,10 @@ import Media from '../components/Media.vue'
 import { PROGRAMS, DONORS, rupiah, shortDate, longDate, programName } from '../data/content'
 import { store } from '../store'
 import { live } from '../admin/db'
+import BackHome from '../components/BackHome.vue'
 
 // `live` naik tiap kali data donasi berubah (realtime), supaya angka ikut dihitung ulang
 const programs = computed(() => (live.value, PROGRAMS.slice()))
-const total = computed(() => ({
-  collected: programs.value.reduce((s, p) => s + (p.collected || 0), 0),
-  donors: programs.value.reduce((s, p) => s + (p.donors || 0), 0),
-}))
 const percent = (p) => Math.min(100, Math.round((p.collected / p.target) * 100))
 
 // 10 donatur terakhir (riwayat transaksi lengkap hanya ada di admin), bisa difilter per program
@@ -25,27 +22,14 @@ const lastDonors = computed(() => (live.value, [...DONORS]
   <section class="view don" aria-label="Donasi">
     <div class="don-hero">
       <div class="wrap">
-        <p class="eyebrow eyebrow-light">Donasi</p>
-        <h1>Menyalurkan kebaikan dengan amanah</h1>
-        <p class="don-lead">Pilih program yang ingin Anda dukung, selesaikan pembayaran lewat transfer bank atau QRIS, dan pantau pembaruan donasi secara otomatis.</p>
+        <BackHome />
+        <h1>Donasi</h1>
+        <p class="don-lead">Salurkan donasi Anda untuk mendukung berbagai program Masjid Jami' Al-Barokah.</p>
       </div>
     </div>
 
     <div class="don-body">
       <div class="wrap">
-        <div class="don-summary">
-          <div v-for="p in programs" :key="p.id" class="don-sum">
-            <span>Total {{ p.name }}</span>
-            <strong>{{ rupiah(p.collected) }}</strong>
-            <small>{{ p.donors }} donatur</small>
-          </div>
-          <div class="don-sum">
-            <span>Total keseluruhan terkumpul</span>
-            <strong>{{ rupiah(total.collected) }}</strong>
-            <small>{{ total.donors }} donatur</small>
-          </div>
-        </div>
-
         <p v-if="!programs.length" class="page-lead" style="margin-top:32px">Belum ada program donasi yang aktif.</p>
         <div v-else class="don-programs">
           <article v-for="p in programs" :key="p.id" class="don-card">
@@ -72,7 +56,6 @@ const lastDonors = computed(() => (live.value, [...DONORS]
                 </template>
                 <template v-else>
                   <span class="don-lbl">Terkumpul</span><strong>{{ rupiah(p.collected) }}</strong>
-                  <p class="don-stat-note">Program berkelanjutan • Dapat berdonasi kapan saja</p>
                 </template>
               </div>
             </div>
@@ -89,10 +72,10 @@ const lastDonors = computed(() => (live.value, [...DONORS]
               <h2 id="h-donatur">10 donatur terakhir</h2>
               <p>Catatan donasi terbaru yang masuk dan terverifikasi secara berkala.</p>
             </div>
-            <div class="tab-row" role="group" aria-label="Filter program">
-              <button type="button" class="tab" :class="{ 'is-active': filter === 'all' }" :aria-pressed="filter === 'all'" @click="filter = 'all'">Semua</button>
-              <button v-for="p in programs" :key="p.id" type="button" class="tab" :class="{ 'is-active': filter === p.id }" :aria-pressed="filter === p.id" @click="filter = p.id">{{ p.name }}</button>
-            </div>
+            <select v-model="filter" class="rounded-xl border border-[#c9d9d1] bg-white px-3 py-2 text-sm font-medium" aria-label="Filter program">
+              <option value="all">Semua program</option>
+              <option v-for="p in programs" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
           </div>
           <div class="table-card">
             <table class="data-table">
