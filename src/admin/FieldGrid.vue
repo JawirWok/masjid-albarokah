@@ -44,6 +44,10 @@ const wide = (f) => f.full || ['textarea', 'lines', 'check', 'image', 'images'].
             <img :src="model[f.k].src" :alt="model[f.k].alt || 'Pratinjau gambar'" class="h-20 w-32 rounded-lg object-cover">
             <button type="button" class="a-btn a-btn-sm a-btn-d" @click="model[f.k] = null">Hapus gambar</button>
           </div>
+          <div v-else-if="f.fallback" class="flex items-center gap-3 mb-2">
+            <img :src="f.fallback" alt="Foto bawaan saat ini" class="h-20 w-32 rounded-lg object-cover">
+            <span class="muted">Memakai foto bawaan</span>
+          </div>
           <input :id="'f-' + f.k" type="file" accept="image/*" :disabled="busy === f.k" @change="pick($event, f)">
           <small v-if="busy === f.k" class="muted" aria-live="polite">Mengunggah…</small>
           <p v-if="uploadErr[f.k]" class="a-alert err" role="alert" style="margin:8px 0 0">{{ uploadErr[f.k] }}</p>

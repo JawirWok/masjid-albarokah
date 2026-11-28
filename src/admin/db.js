@@ -134,6 +134,16 @@ export async function submitDonation(row) {
 /** Muat ulang angka donasi sekarang juga (tanpa menunggu realtime). */
 export async function refreshDonations() { await loadDonations(); live.value++ }
 
+function applyProfile(pr) {
+  if (!pr) return
+  for (const k of ['alamat', 'tahun', 'kapasitas', 'lantai', 'visi']) {
+    if (pr[k] !== '' && pr[k] != null) C.PROFILE[k] = pr[k]
+  }
+  C.PROFILE.hero = pr.hero?.src ? pr.hero : null
+  if (pr.misi?.length) C.PROFILE.misi = pr.misi
+  if (pr.galeri?.length) put(C.GALLERY, pr.galeri.map((g) => ({ src: g.src, alt: g.alt || 'Foto masjid', caption: g.caption || g.alt || '' })))
+}
+
 export async function syncPublic() {
   if (!supabase) return
   try {
@@ -147,15 +157,7 @@ export async function syncPublic() {
     if (articles.length) put(C.ARTICLES, articles.filter((a) => a.status !== 'draft'))
 
     const s = Object.fromEntries(settings.map((r) => [r.key, r.data]))
-    const pr = s.profil
-    if (pr) {
-      for (const k of ['alamat', 'tahun', 'kapasitas', 'lantai', 'visi']) {
-        if (pr[k] !== '' && pr[k] != null) C.PROFILE[k] = pr[k]
-      }
-      if (pr.misi?.length) C.PROFILE.misi = pr.misi
-    }
-    const galeri = s.profil?.galeri
-    if (galeri?.length) put(C.GALLERY, galeri.map((g) => ({ src: g.src, alt: g.alt || 'Foto masjid', caption: g.caption || g.alt || '' })))
+    applyProfile(s.profil)
     const h = s.sholat || {}
     const apply = () => C.PRAYERS.forEach((p) => { const v = h[p.name.toLowerCase()]; if (v) p.time = v })
     apply()
@@ -170,10 +172,11 @@ export async function syncPublic() {
 /* ---------------- Admin: baca & tulis (perlu login) ---------------- */
 export const db = reactive({})
 
-/** Sinkronkan data artikel & kegiatan dari panel admin ke tampilan publik dalam sesi yang sama. */
+/** Sinkronkan data situs (artikel, kegiatan, profil, kontak) dari panel admin ke tampilan publik dalam sesi yang sama. */
 export function syncSite() {
   if (Array.isArray(db.ARTICLES)) put(C.ARTICLES, db.ARTICLES.filter((a) => a.status !== 'draft'))
   if (Array.isArray(db.ACTIVITIES)) put(C.ACTIVITIES, db.ACTIVITIES)
+  applyProfile(db.profil)
   if (db.kontak) applyContacts(db.kontak)
   live.value++
 }
@@ -182,7 +185,7 @@ export async function loadDB() {
   const alamat = 'Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315'
   const next = {
     PROGRAMS: [], DONORS: [], METODE: [], ACTIVITIES: [], ARTICLES: [], log: [],
-    profil: { nama: "Masjid Jami' Al-Barokah", alamat, tahun: 2021, luas: '500 m²', kapasitas: 180, lantai: 3, fasilitas: [], visi: '', misi: [], galeri: [] },
+    profil: { nama: "Masjid Jami' Al-Barokah", alamat, tahun: 2021, luas: '500 m²', kapasitas: 180, lantai: 3, fasilitas: [], visi: '', misi: [], hero: null, galeri: [] },
     sholat: { lokasi: 'Tangerang Selatan', lat: -6.33, lng: 106.69, metode: '20', auto: true },
     kontak: { wa: '', instagram: '', tiktok: '', youtube: '', facebook: '', maps: '' },
     kategori: ['Akhlak', 'Ibadah', 'Fikih', 'Berita', 'Hadis', 'Kajian'],

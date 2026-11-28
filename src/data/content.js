@@ -311,8 +311,16 @@ export const GALLERY = [
 /** Info pembayaran; diisi dari Admin > Donasi > Pembayaran (lewat Supabase). */
 export const PAYMENT = { wa: '6281298850904', metode: [] }
 
+export const HERO_DEFAULT = {
+  src: '/assets/stock/masjid-hero.jpg',
+  width: 1600,
+  height: 1067,
+  alt: 'Masjid dengan kubah putih dan menara berkisi, tampak dari halaman luas.',
+}
+
 /** Profil masjid; ditimpa dari Admin > Profil Masjid & Kontak (lewat Supabase). */
 export const PROFILE = {
+  hero: null,
   alamat: 'Jl. Ampera Poncol, Babakan, Kec. Setu, Kota Tangerang Selatan, Banten 15315',
   tahun: 2021,
   kapasitas: 180,

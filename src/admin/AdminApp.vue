@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { Dialog, DialogPanel, TabGroup, TabList, Tab } from '@headlessui/vue'
 import {
   Bars3Icon, PlusIcon, PencilSquareIcon, TrashIcon, ArrowTopRightOnSquareIcon, ArrowRightOnRectangleIcon, ArrowLeftIcon,
   EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, CheckCircleIcon, ExclamationTriangleIcon, InboxIcon,
   Squares2X2Icon, BuildingLibraryIcon, ClockIcon, HeartIcon, CalendarDaysIcon, UserGroupIcon, NewspaperIcon, PhoneIcon,
   Cog6ToothIcon, DocumentTextIcon, BanknotesIcon, UserCircleIcon, KeyIcon, ShieldCheckIcon, AtSymbolIcon, MagnifyingGlassIcon,
+  ChevronLeftIcon, ChevronRightIcon,
 } from '@heroicons/vue/24/outline'
 import BrandMark from '../components/BrandMark.vue'
 import './admin.css'
@@ -85,6 +86,37 @@ const filteredRows = computed(() => {
     return (colText + ' ' + extra).toLowerCase().includes(s)
   })
 })
+const PER_PAGES = [10, 20, 30, 40, 50]
+const isPaged = computed(() => cfg.value?.key === 'DONORS')
+const perPage = ref(10)
+const page = ref(1)
+const pgAnim = ref(false)
+const pgPrev = ref(null)
+const pgNext = ref(null)
+const totalPages = computed(() => (isPaged.value ? Math.max(1, Math.ceil(filteredRows.value.length / perPage.value)) : 1))
+const pageStart = computed(() => (isPaged.value ? (page.value - 1) * perPage.value : 0))
+const pagedRows = computed(() => (isPaged.value ? filteredRows.value.slice(pageStart.value, pageStart.value + perPage.value) : filteredRows.value))
+const pageNums = computed(() => {
+  const total = totalPages.value, cur = page.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  let l = Math.max(2, cur - 1), r = Math.min(total - 1, cur + 1)
+  if (cur <= 3) r = 5
+  else if (cur >= total - 2) l = total - 4
+  const out = [1]
+  if (l > 2) out.push('…')
+  for (let i = l; i <= r; i++) out.push(i)
+  if (r < total - 1) out.push('…')
+  out.push(total)
+  return out
+})
+function setPage(p) {
+  const next = Math.min(totalPages.value, Math.max(1, p))
+  if (next === page.value) return
+  if (next <= 1 && document.activeElement === pgPrev.value) nextTick(() => pgNext.value?.focus())
+  else if (next >= totalPages.value && document.activeElement === pgNext.value) nextTick(() => pgPrev.value?.focus())
+  pgAnim.value = true
+  page.value = next
+}
 const clone = (o) => JSON.parse(JSON.stringify(o ?? {}))
 
 function toast(t, bad = false) {
@@ -93,7 +125,10 @@ function toast(t, bad = false) {
 }
 const fail = (e) => toast('Gagal: ' + (e?.message || 'periksa koneksi'), true)
 function go(v) { view.value = v; side.value = false }
-watch([view, tab], () => { q.value = ''; if (cfg.value?.single) draft.value = clone(db[cfg.value.single]) })
+watch([view, tab], () => { q.value = ''; page.value = 1; pgAnim.value = false; if (cfg.value?.single) draft.value = clone(db[cfg.value.single]) })
+watch(q, () => { page.value = 1 })
+watch(perPage, () => { pgAnim.value = true; page.value = 1 })
+watch(totalPages, (tp) => { if (page.value > tp) page.value = tp })
 
 let channel
 function listen() {
@@ -138,7 +173,7 @@ async function saveSingle() {
   const c = cfg.value, n = normalize(c.f, draft.value)
   if (c.single === 'sholat') n.updated = today()
   busy.value = true
-  try { db[c.single] = n; await saveSetting(c.single); note(c.t + ' diperbarui'); toast('Tersimpan.') } catch (e) { fail(e) } finally { busy.value = false }
+  try { db[c.single] = n; await saveSetting(c.single); if (c.single === 'profil') syncSite(); note(c.t + ' diperbarui'); toast('Tersimpan.') } catch (e) { fail(e) } finally { busy.value = false }
 }
 async function autoTimes() {
   const d = draft.value
@@ -486,35 +521,71 @@ onMounted(async () => {
             </template>
 
             <div v-else class="a-card a-tw">
-              <search v-if="rows.length" class="a-search" :aria-label="'Cari ' + cfg.item">
-                <div class="a-search-box">
-                  <label for="adm-search" class="sr-only">Cari {{ cfg.item }}</label>
-                  <MagnifyingGlassIcon aria-hidden="true" />
-                  <input id="adm-search" v-model="q" type="search" autocorrect="off" autocapitalize="none" spellcheck="false"
-                         :placeholder="'Cari ' + cfg.item + '…'">
+              <div v-if="rows.length" class="a-toolbar">
+                <div v-if="isPaged" class="a-perpage">
+                  <label for="adm-perpage">Tampilkan</label>
+                  <select id="adm-perpage" v-model.number="perPage">
+                    <option v-for="n in PER_PAGES" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                  <span>data</span>
                 </div>
-                <span v-if="q.trim()" class="a-search-count" role="status">{{ filteredRows.length }} dari {{ rows.length }}</span>
-              </search>
-              <table v-if="filteredRows.length">
-                <thead><tr><th v-for="c in cfg.cols" :key="c[0]">{{ c[0] }}</th><th></th></tr></thead>
-                <tbody><tr v-for="(r, i) in filteredRows" :key="r.id || i">
-                  <td v-for="c in cfg.cols" :key="c[0]">
-                    <span v-if="c[2] === 'badge'" class="a-badge" :class="{ w: c[1](r)[1] }">{{ c[1](r)[0] }}</span>
-                    <template v-else>{{ c[1](r) }}</template>
-                  </td>
-                  <td class="a-act">
-                    <button v-if="cfg.key === 'DONORS' && r.status === 'pending'" type="button" class="a-btn a-btn-sm a-btn-p" @click="verify(r)">Verifikasi</button>
-                    <button type="button" class="a-btn a-btn-sm" :aria-label="'Ubah ' + (r.title || r.name || r.nama || cfg.item)" @click="openForm(r)"><PencilSquareIcon class="size-4" /></button>
-                    <button type="button" class="a-btn a-btn-sm a-btn-d" :aria-label="'Hapus ' + (r.title || r.name || r.nama || cfg.item)" @click="remove(r)"><TrashIcon class="size-4" /></button>
-                  </td>
-                </tr></tbody>
-              </table>
-              <div v-else-if="rows.length" class="a-empty">
+                <search class="a-search" :aria-label="'Cari ' + cfg.item">
+                  <div class="a-search-box">
+                    <label for="adm-search" class="sr-only">Cari {{ cfg.item }}</label>
+                    <MagnifyingGlassIcon aria-hidden="true" />
+                    <input id="adm-search" v-model="q" type="search" autocorrect="off" autocapitalize="none" spellcheck="false"
+                           :placeholder="'Cari ' + cfg.item + '…'">
+                  </div>
+                  <span v-if="q.trim()" class="a-search-count" role="status">{{ filteredRows.length }} dari {{ rows.length }}</span>
+                </search>
+              </div>
+              <div v-if="filteredRows.length" class="a-table-scroll">
+                <table>
+                  <thead><tr>
+                    <th v-if="isPaged" scope="col">#</th>
+                    <th v-for="c in cfg.cols" :key="c[0]" scope="col">{{ c[0] }}</th>
+                    <th scope="col"><span class="sr-only">Aksi</span></th>
+                  </tr></thead>
+                  <tbody :key="isPaged ? page + '-' + perPage : 'all'" :class="{ 'a-tbody-anim': isPaged && pgAnim }">
+                    <tr v-for="(r, i) in pagedRows" :key="r.id || pageStart + i">
+                      <td v-if="isPaged" class="a-num">{{ pageStart + i + 1 }}</td>
+                      <td v-for="c in cfg.cols" :key="c[0]">
+                        <span v-if="c[2] === 'badge'" class="a-badge" :class="{ w: c[1](r)[1] }">{{ c[1](r)[0] }}</span>
+                        <template v-else>{{ c[1](r) }}</template>
+                      </td>
+                      <td class="a-act">
+                        <button v-if="cfg.key === 'DONORS' && r.status === 'pending'" type="button" class="a-btn a-btn-sm a-btn-p" @click="verify(r)">Verifikasi</button>
+                        <button type="button" class="a-btn a-btn-sm" :aria-label="'Ubah ' + (r.title || r.name || r.nama || cfg.item)" @click="openForm(r)"><PencilSquareIcon class="size-4" /></button>
+                        <button type="button" class="a-btn a-btn-sm a-btn-d" :aria-label="'Hapus ' + (r.title || r.name || r.nama || cfg.item)" @click="remove(r)"><TrashIcon class="size-4" /></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="isPaged && filteredRows.length" class="a-pbar">
+                <p class="a-pg-info" role="status" aria-live="polite">
+                  Menampilkan {{ pageStart + 1 }} hingga {{ Math.min(pageStart + perPage, filteredRows.length) }} dari {{ filteredRows.length }} data
+                </p>
+                <nav class="a-pg" aria-label="Halaman tabel donatur">
+                  <button ref="pgPrev" type="button" class="a-pg-btn" aria-label="Halaman sebelumnya" :disabled="page <= 1" @click="setPage(page - 1)">
+                    <ChevronLeftIcon class="size-4" />
+                  </button>
+                  <template v-for="(n, idx) in pageNums" :key="String(n) + '-' + idx">
+                    <span v-if="n === '…'" class="a-pg-gap" aria-hidden="true">…</span>
+                    <button v-else type="button" class="a-pg-btn" :class="{ on: n === page }"
+                            :aria-label="'Halaman ' + n" :aria-current="n === page ? 'page' : undefined" @click="setPage(n)">{{ n }}</button>
+                  </template>
+                  <button ref="pgNext" type="button" class="a-pg-btn" aria-label="Halaman berikutnya" :disabled="page >= totalPages" @click="setPage(page + 1)">
+                    <ChevronRightIcon class="size-4" />
+                  </button>
+                </nav>
+              </div>
+              <div v-if="!filteredRows.length && rows.length" class="a-empty">
                 <MagnifyingGlassIcon class="size-10" /><b style="color:var(--ink)">Tidak ada yang cocok</b>
                 <span>Tidak ada {{ cfg.item }} untuk kata kunci "{{ q.trim() }}".</span>
                 <button type="button" class="a-btn" @click="q = ''">Reset pencarian</button>
               </div>
-              <div v-else class="a-empty">
+              <div v-else-if="!rows.length" class="a-empty">
                 <InboxIcon class="size-10" /><b style="color:var(--ink)">Belum ada data</b><span>Mulai dengan menambahkan {{ cfg.item }} pertama.</span>
                 <button type="button" class="a-btn a-btn-p" @click="openForm(null)"><PlusIcon class="size-4" /> Tambah {{ cfg.item }}</button>
               </div>

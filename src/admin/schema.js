@@ -1,3 +1,4 @@
+import { HERO_DEFAULT } from '../data/content'
 import { db, rp, dt, today, slug, fmtBody } from './db'
 
 const F = (k, l, t = 'text', o = {}) => ({ k, l, t, ...o })
@@ -18,6 +19,7 @@ export const metodeLabel = (m) => (m.tipe === 'bank' ? 'Transfer ' + m.nama : m.
 export const CFG = {
   profil: {
     t: 'Profil Masjid', single: 'profil', f: [
+      F('hero', 'Gambar hero beranda', 'image', { fallback: HERO_DEFAULT.src, h: 'Foto latar utama di halaman Beranda (disarankan foto landscape). Hapus untuk kembali ke foto bawaan.' }),
       F('alamat', 'Alamat', 'textarea', { req: 1, rows: 2 }),
       F('tahun', 'Tahun berdiri', 'number'), F('kapasitas', 'Kapasitas jamaah', 'number'), F('lantai', 'Jumlah lantai', 'number'),
       F('galeri', 'Fasilitas & foto masjid', 'images', { ph: 'Nama fasilitas', h: 'Satu foto = satu fasilitas. Isi nama di bawah foto (mis. Tempat wudhu). Tampil di slider halaman Profil.' })]
